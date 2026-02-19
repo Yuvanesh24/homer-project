@@ -35,10 +35,6 @@ npm install
 npm run dev
 ```
 
-### Login
-- Email: `admin@homer.org`
-- Password: `admin123`
-
 ## Features
 - Patient Management with auto-generated timeline
 - Device & SIM Card Tracking
