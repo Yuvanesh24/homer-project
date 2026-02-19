@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  therapist
+  data_entry
+}
+
+enum AffectedHand {
+  left
+  right
+}
+
+enum GroupType {
+  intervention
+  control
+}
+
+enum VCGAssignment {
+  VCG2
+  VCG3
+  VCG4_5
+}
+
+enum PatientStatus {
+  active
+  dropped_out
+  completed
+}
+
+enum EventStatus {
+  pending
+  completed
+  skipped
+  cancelled
+}
+
+enum DeviceStatus {
+  available
+  in_use
+  under_maintenance
+}
+
+enum SimProvider {
+  airtel
+  jio
+}
+
+enum ContactType {
+  phone
+  home_visit
+}
+
+enum IssueType {
+  technical
+  medical
+  scheduling
+  other
+}
+
+enum Severity {
+  minor
+  moderate
+  severe
+  life_threatening
+}
+
+enum ReminderType {
+  event
+  sim_recharge
+  device_return
+  follow_up
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  role         Role
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  lastLogin    DateTime? @map("last_login")
+  isActive     Boolean   @default(true) @map("is_active")
+
+  createdPatients  Patient[]        @relation("CreatedBy")
+  completedEvents  StudyEvent[]     @relation("CompletedBy")
+  interventionSessions InterventionSession[]
+  controlSessions     ControlSession[]
+  adverseEvents        AdverseEvent[]
+  issueLogs            IssueLog[]
+  simRechargeHistory   SimRechargeHistory[]
+  auditLogs            AuditLog[]
+
+  @@map("users")
+}
+
+model Patient {
+  id               String          @id @default(uuid())
+  patientId        String          @unique @map("patient_id")
+  age              Int
+  affectedHand     AffectedHand   @map("affected_hand")
+  groupType        GroupType       @map("group_type")
+  vcgAssignment    VCGAssignment?  @map("vcg_assignment")
+  studyStartDate   DateTime        @map("study_start_date")
+  enrollmentDate   DateTime        @map("enrollment_date")
+  phoneNumber      String?         @map("phone_number")
+  status           PatientStatus   @default(active)
+  dropoutDate      DateTime?       @map("dropout_date")
+  dropoutReason    String?         @map("dropout_reason")
+  dropoutReasonType String?        @map("dropout_reason_type")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  createdById      String?   @map("created_by_id")
+  createdBy        User?     @relation("CreatedBy", fields: [createdById], references: [id])
+  studyEvents              StudyEvent[]
+  interventionSessions     InterventionSession[]
+  controlSessions          ControlSession[]
+  adverseEvents            AdverseEvent[]
+  issueLogs                IssueLog[]
+  reminders                Reminder[]
+
+  @@map("patients")
+}
+
+model StudyEvent {
+  id             String      @id @default(uuid())
+  patientId      String      @map("patient_id")
+  patient        Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  eventName      String      @map("event_name")
+  eventType      String      @map("event_type")
+  scheduledDate  DateTime    @map("scheduled_date")
+  studyDay       Int         @map("study_day")
+  status         EventStatus @default(pending)
+  completionDate DateTime?   @map("completion_date")
+  notes          String?
+  completedById  String?     @map("completed_by_id")
+  completedBy    User?       @relation("CompletedBy", fields: [completedById], references: [id])
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  @@map("study_events")
+}
+
+model DeviceSet {
+  id                   String        @id @default(uuid())
+  setNumber            Int           @unique @map("set_number")
+  marsDeviceId         String        @unique @map("mars_device_id")
+  plutoDeviceId        String        @unique @map("pluto_device_id")
+  laptopNumber         String        @unique @map("laptop_number")
+  modemSerial          String        @unique @map("modem_serial")
+  actigraphLeftSerial  String        @unique @map("actigraph_left_serial")
+  actigraphRightSerial String        @unique @map("actigraph_right_serial")
+  status               DeviceStatus  @default(available)
+  assignedPatientId    String?       @unique @map("assigned_patient_id")
+  assignmentDate       DateTime?     @map("assignment_date")
+  expectedReturnDate   DateTime?     @map("expected_return_date")
+  returnDate           DateTime?     @map("return_date")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  simCards SimCard[]
+
+  @@map("device_sets")
+}
+
+model SimCard {
+  id                   String      @id @default(uuid())
+  simNumber            String      @unique @map("sim_number")
+  provider             SimProvider
+  linkedDeviceSetId    String?     @map("linked_device_set_id")
+  linkedDeviceSet      DeviceSet?  @relation(fields: [linkedDeviceSetId], references: [id])
+  rechargeDate         DateTime?   @map("recharge_date")
+  rechargeDurationDays Int?        @map("recharge_duration_days")
+  expiryDate           DateTime?   @map("expiry_date")
+  isActive             Boolean     @default(true) @map("is_active")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+
+  rechargeHistory SimRechargeHistory[]
+
+  @@map("sim_cards")
+}
+
+model SimRechargeHistory {
+  id           String   @id @default(uuid())
+  simCardId    String   @map("sim_card_id")
+  simCard      SimCard  @relation(fields: [simCardId], references: [id], onDelete: Cascade)
+  rechargeDate DateTime @map("recharge_date")
+  durationDays Int      @map("duration_days")
+  expiryDate   DateTime @map("expiry_date")
+  loggedById   String?  @map("logged_by_id")
+  loggedBy     User?    @relation(fields: [loggedById], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("sim_recharge_history")
+}
+
+model InterventionSession {
+  id                    String   @id @default(uuid())
+  patientId             String   @map("patient_id")
+  patient               Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sessionDate           DateTime @map("session_date")
+  studyDay              Int      @map("study_day")
+  durationMinutes       Int?     @map("duration_minutes")
+  roboticAssessmentScore Decimal? @map("robotic_assessment_score")
+  exercisesPerformed    String?  @map("exercises_performed")
+  mechanismsUsed        String?  @map("mechanisms_used")
+  adlTrainingGiven      String?  @map("adl_training_given")
+  patientFeedback       String?  @map("patient_feedback")
+  therapistNotes        String?  @map("therapist_notes")
+  devicePerformanceNotes String? @map("device_performance_notes")
+  loggedById            String?  @map("logged_by_id")
+  loggedBy              User?    @relation(fields: [loggedById], references: [id])
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("intervention_sessions")
+}
+
+model ControlSession {
+  id              String   @id @default(uuid())
+  patientId       String   @map("patient_id")
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sessionDate     DateTime @map("session_date")
+  studyDay        Int      @map("study_day")
+  durationMinutes Int?     @map("duration_minutes")
+  manualExercisesGiven String? @map("manual_exercises_given")
+  adlTrainingGiven    String? @map("adl_training_given")
+  patientFeedback     String? @map("patient_feedback")
+  therapistNotes      String? @map("therapist_notes")
+  loggedById          String? @map("logged_by_id")
+  loggedBy            User?   @relation(fields: [loggedById], references: [id])
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("control_sessions")
+}
+
+model AdverseEvent {
+  id                String    @id @default(uuid())
+  patientId         String    @map("patient_id")
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  eventDate         DateTime  @map("event_date")
+  studyDay          Int       @map("study_day")
+  eventType         String    @map("event_type")
+  severity          Severity
+  description       String?
+  actionTaken       String?   @map("action_taken")
+  reportedToPi      Boolean   @default(false) @map("reported_to_pi")
+  requiresDropout   Boolean   @default(false) @map("requires_dropout")
+  loggedById        String?   @map("logged_by_id")
+  loggedBy          User?     @relation(fields: [loggedById], references: [id])
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("adverse_events")
+}
+
+model IssueLog {
+  id                String     @id @default(uuid())
+  patientId         String     @map("patient_id")
+  patient           Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  contactDate       DateTime   @map("contact_date")
+  contactType       ContactType @map("contact_type")
+  durationMinutes   Int?       @map("duration_minutes")
+  issueType         IssueType  @map("issue_type")
+  issueDescription  String?    @map("issue_description")
+  rootCause         String?    @map("root_cause")
+  solutionProvided  String?    @map("solution_provided")
+  followUpRequired  Boolean    @default(false) @map("follow_up_required")
+  followUpDate      DateTime?  @map("follow_up_date")
+  loggedById        String?    @map("logged_by_id")
+  loggedBy          User?      @relation(fields: [loggedById], references: [id])
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  @@map("issue_logs")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String?     @map("user_id")
+  user       User?       @relation(fields: [userId], references: [id])
+  tableName  String      @map("table_name")
+  recordId   String      @map("record_id")
+  action     AuditAction
+  oldValues  Json?       @map("old_values")
+  newValues  Json?       @map("new_values")
+  ipAddress  String?     @map("ip_address")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+model Reminder {
+  id            String        @id @default(uuid())
+  patientId     String        @map("patient_id")
+  patient       Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  reminderType  ReminderType  @map("reminder_type")
+  referenceId  String?       @map("reference_id")
+  title         String
+  description   String?
+  dueDate       DateTime      @map("due_date")
+  isCompleted   Boolean       @default(false) @map("is_completed")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("reminders")
+}
