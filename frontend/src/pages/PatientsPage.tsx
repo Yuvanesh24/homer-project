@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import api from '@/lib/api';
 import { Patient } from '@/types';
-import { Search, Plus, Filter, Download } from 'lucide-react';
+import { Search, Plus, Download, Trash2 } from 'lucide-react';
 
 export function PatientsPage() {
   const navigate = useNavigate();
@@ -48,6 +48,17 @@ export function PatientsPage() {
       console.error('Failed to fetch patients:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this patient?')) {
+      try {
+        await api.delete(`/patients/${id}`);
+        fetchPatients();
+      } catch (error) {
+        console.error('Failed to delete patient:', error);
+      }
     }
   };
 
@@ -158,7 +169,6 @@ export function PatientsPage() {
                   <TableHead>VCG</TableHead>
                   <TableHead>Study Start</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Events</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -172,9 +182,6 @@ export function PatientsPage() {
                     <TableCell>{patient.vcgAssignment || '-'}</TableCell>
                     <TableCell>{new Date(patient.studyStartDate).toLocaleDateString()}</TableCell>
                     <TableCell>{getStatusBadge(patient.status)}</TableCell>
-                    <TableCell>
-                      {patient.completedEventsCount || 0} / {patient.totalEventsCount || 0}
-                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
@@ -182,6 +189,14 @@ export function PatientsPage() {
                         onClick={() => navigate(`/patients/${patient.id}`)}
                       >
                         View
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(patient.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

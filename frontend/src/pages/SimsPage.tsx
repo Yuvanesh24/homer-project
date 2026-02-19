@@ -13,7 +13,7 @@ import {
 import api from '@/lib/api';
 import { SimCard } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { Smartphone, Plus, AlertTriangle } from 'lucide-react';
+import { Smartphone, Plus, AlertTriangle, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -63,13 +63,17 @@ export function SimsPage() {
   };
 
   const handleCreateSim = async () => {
+    if (!formData.simNumber) {
+      alert('Please enter SIM number');
+      return;
+    }
     try {
       await api.post('/sims', formData);
       fetchSims();
       setDialogOpen(false);
       setFormData({ simNumber: '', provider: 'airtel' });
-    } catch (error) {
-      console.error('Failed to create SIM:', error);
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to create SIM');
     }
   };
 
@@ -77,16 +81,31 @@ export function SimsPage() {
     if (!selectedSim) return;
     try {
       await api.post(`/sims/${selectedSim.id}/recharge`, rechargeData);
-      fetchSims();
       setRechargeDialogOpen(false);
       setSelectedSim(null);
-    } catch (error) {
-      console.error('Failed to recharge SIM:', error);
+      fetchSims(); // Refresh after recharge
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to recharge SIM');
+    }
+  };
+
+  const handleDeleteSim = async (sim: SimCard) => {
+    if (confirm('Are you sure you want to delete this SIM?')) {
+      try {
+        await api.delete(`/sims/${sim.id}`);
+        fetchSims();
+      } catch (error) {
+        console.error('Failed to delete SIM:', error);
+      }
     }
   };
 
   const openRechargeDialog = (sim: SimCard) => {
     setSelectedSim(sim);
+    setRechargeData({
+      rechargeDate: new Date().toISOString().split('T')[0],
+      durationDays: 180,
+    });
     setRechargeDialogOpen(true);
   };
 
@@ -166,7 +185,6 @@ export function SimsPage() {
                 <TableRow>
                   <TableHead>SIM Number</TableHead>
                   <TableHead>Provider</TableHead>
-                  <TableHead>Device Set</TableHead>
                   <TableHead>Recharge Date</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead>Status</TableHead>
@@ -185,7 +203,6 @@ export function SimsPage() {
                         {sim.provider.toUpperCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell>{sim.linkedDeviceSet?.setNumber || '-'}</TableCell>
                     <TableCell>
                       {sim.rechargeDate ? formatDate(sim.rechargeDate) : '-'}
                     </TableCell>
@@ -201,9 +218,12 @@ export function SimsPage() {
                         <Badge variant="success">Active</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => openRechargeDialog(sim)}>
                         Recharge
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteSim(sim)} className="text-red-600">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -214,6 +234,7 @@ export function SimsPage() {
         </CardContent>
       </Card>
 
+      {/* Add SIM Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -246,21 +267,18 @@ export function SimsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateSim}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Recharge Dialog */}
       <Dialog open={rechargeDialogOpen} onOpenChange={setRechargeDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Recharge SIM</DialogTitle>
-            <DialogDescription>
-              Recharge {selectedSim?.simNumber}
-            </DialogDescription>
+            <DialogDescription>Recharge {selectedSim?.simNumber}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -290,9 +308,7 @@ export function SimsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRechargeDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setRechargeDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleRecharge}>Recharge</Button>
           </DialogFooter>
         </DialogContent>
