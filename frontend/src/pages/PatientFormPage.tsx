@@ -19,6 +19,8 @@ import { ArrowLeft } from 'lucide-react';
 
 const patientSchema = z.object({
   patientId: z.string().min(1, 'Patient ID is required'),
+  name: z.string().optional(),
+  gender: z.string().optional(),
   age: z.number().min(18).max(100),
   affectedHand: z.enum(['left', 'right']),
   groupType: z.enum(['intervention', 'control']),
@@ -46,6 +48,8 @@ export function PatientFormPage() {
     resolver: zodResolver(patientSchema),
     defaultValues: {
       patientId: '',
+      name: '',
+      gender: '',
       age: 18,
       affectedHand: 'right',
       groupType: 'intervention',
@@ -86,7 +90,7 @@ export function PatientFormPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="patientId">Patient ID</Label>
+              <Label htmlFor="patientId">Patient ID *</Label>
               <Input
                 id="patientId"
                 placeholder="e.g., HOMER-001"
@@ -95,6 +99,34 @@ export function PatientFormPage() {
               {errors.patientId && (
                 <p className="text-sm text-red-500">{errors.patientId.message}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Patient Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter patient name"
+                  {...register('name')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  value={watch('gender') || ''}
+                  onValueChange={(value) => setValue('gender', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

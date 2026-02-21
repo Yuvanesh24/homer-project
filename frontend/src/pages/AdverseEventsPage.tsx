@@ -239,9 +239,28 @@ export function AdverseEventsPage() {
               <Label>Study Day</Label>
               <Input type="number" value={formData.studyDay} onChange={(e) => setFormData({ ...formData, studyDay: Number(e.target.value) })} />
             </div>
-            <div className="space-y-2 col-span-2">
+            <div className="space-y-2">
               <Label>Event Type *</Label>
-              <Input value={formData.eventType} onChange={(e) => setFormData({ ...formData, eventType: e.target.value })} placeholder="Describe the event" />
+              <Select value={formData.eventType} onValueChange={(v) => {
+                setFormData({ 
+                  ...formData, 
+                  eventType: v,
+                  requiresDropout: v === 'dropout' ? true : formData.requiresDropout
+                });
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select event type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pain">Pain</SelectItem>
+                  <SelectItem value="fatigue">Fatigue</SelectItem>
+                  <SelectItem value="injury">Injury</SelectItem>
+                  <SelectItem value="设备故障">设备故障</SelectItem>
+                  <SelectItem value="皮肤问题">皮肤问题</SelectItem>
+                  <SelectItem value="其他">其他</SelectItem>
+                  <SelectItem value="dropout">Dropout</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Severity</Label>
@@ -258,6 +277,16 @@ export function AdverseEventsPage() {
             <div className="space-y-2">
               <Label>Reported to PI</Label>
               <Select value={formData.reportedToPi ? 'yes' : 'no'} onValueChange={(v) => setFormData({ ...formData, reportedToPi: v === 'yes' })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Requires Dropout</Label>
+              <Select value={formData.requiresDropout ? 'yes' : 'no'} onValueChange={(v) => setFormData({ ...formData, requiresDropout: v === 'yes' })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="yes">Yes</SelectItem>

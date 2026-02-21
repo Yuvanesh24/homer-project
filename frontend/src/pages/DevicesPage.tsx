@@ -40,6 +40,7 @@ export function DevicesPage() {
   const [selectedDevice, setSelectedDevice] = useState<DeviceSet | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [formData, setFormData] = useState({
+    setNumber: 1,
     marsDeviceId: '',
     plutoDeviceId: '',
     laptopNumber: '',
@@ -83,6 +84,7 @@ export function DevicesPage() {
       fetchDevices();
       setDialogOpen(false);
       setFormData({
+        setNumber: 1,
         marsDeviceId: '',
         plutoDeviceId: '',
         laptopNumber: '',
@@ -259,7 +261,18 @@ export function DevicesPage() {
             <DialogDescription>Enter the device details.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="space-y-2 col-span-2">
+            <div className="space-y-2">
+              <Label>Set Number *</Label>
+              <Input
+                type="number"
+                min={1}
+                max={5}
+                value={formData.setNumber}
+                onChange={(e) => setFormData({ ...formData, setNumber: parseInt(e.target.value) || 1 })}
+                placeholder="1"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>MARS Device ID *</Label>
               <Input
                 value={formData.marsDeviceId}

@@ -11,6 +11,8 @@ export interface User {
 export interface Patient {
   id: string;
   patientId: string;
+  name?: string;
+  gender?: string;
   age: number;
   affectedHand: 'left' | 'right';
   groupType: 'intervention' | 'control';

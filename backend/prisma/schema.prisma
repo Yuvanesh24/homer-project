@@ -112,6 +112,8 @@ model User {
 model Patient {
   id               String          @id @default(uuid())
   patientId        String          @unique @map("patient_id")
+  name             String?         @map("name")
+  gender           String?         @map("gender")
   age              Int
   affectedHand     AffectedHand   @map("affected_hand")
   groupType        GroupType       @map("group_type")

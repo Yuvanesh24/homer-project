@@ -163,6 +163,8 @@ export function PatientsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Gender</TableHead>
                   <TableHead>Age</TableHead>
                   <TableHead>Hand</TableHead>
                   <TableHead>Group</TableHead>
@@ -176,6 +178,8 @@ export function PatientsPage() {
                 {patients.map((patient) => (
                   <TableRow key={patient.id}>
                     <TableCell className="font-medium">{patient.patientId}</TableCell>
+                    <TableCell>{patient.name || '-'}</TableCell>
+                    <TableCell className="capitalize">{patient.gender || '-'}</TableCell>
                     <TableCell>{patient.age}</TableCell>
                     <TableCell className="capitalize">{patient.affectedHand}</TableCell>
                     <TableCell>{getGroupBadge(patient.groupType)}</TableCell>

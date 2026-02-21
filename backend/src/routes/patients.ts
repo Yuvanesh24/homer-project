@@ -83,6 +83,8 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
     const patient = await prisma.patient.create({
       data: {
         patientId,
+        name: data.name,
+        gender: data.gender,
         age: data.age,
         affectedHand: data.affectedHand,
         groupType: data.groupType,
@@ -94,7 +96,11 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
       },
     });
 
-    await generateStudyEvents(patient.id, studyStartDate, data.groupType);
+    try {
+      await generateStudyEvents(patient.id, studyStartDate, data.groupType);
+    } catch (eventError) {
+      console.error('Failed to generate study events:', eventError);
+    }
 
     const fullPatient = await prisma.patient.findUnique({
       where: { id: patient.id },

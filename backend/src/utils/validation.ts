@@ -15,7 +15,9 @@ export const registerSchema = z.object({
 
 export const createPatientSchema = z.object({
   patientId: z.string().min(1),
-  age: z.number().int().min(18).max(100),
+  name: z.string().optional(),
+  gender: z.string().optional(),
+  age: z.coerce.number().int().min(18).max(100),
   affectedHand: z.enum(['left', 'right']),
   groupType: z.enum(['intervention', 'control']),
   vcgAssignment: z.enum(['VCG2', 'VCG3', 'VCG4_5']).optional(),
