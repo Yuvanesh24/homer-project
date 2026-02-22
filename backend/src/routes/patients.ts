@@ -65,7 +65,11 @@ router.get('/:id', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Patient not found' });
     }
 
-    res.json(patient);
+    const deviceSet = await prisma.deviceSet.findFirst({
+      where: { assignedPatientId: id }
+    });
+
+    res.json({ ...patient, deviceSet });
   } catch (error) {
     console.error('Get patient error:', error);
     res.status(500).json({ error: 'Internal server error' });

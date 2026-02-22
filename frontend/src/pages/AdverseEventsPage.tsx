@@ -186,6 +186,7 @@ export function AdverseEventsPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Reported to PI</TableHead>
                   <TableHead>Requires Dropout</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -199,6 +200,21 @@ export function AdverseEventsPage() {
                     <TableCell className="max-w-xs truncate">{event.description || '-'}</TableCell>
                     <TableCell>{event.reportedToPi ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{event.requiresDropout ? 'Yes' : 'No'}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={async () => {
+                          if (confirm('Delete this adverse event?')) {
+                            await api.delete(`/adverse-events/${event.id}`);
+                            fetchEvents();
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -252,12 +268,9 @@ export function AdverseEventsPage() {
                   <SelectValue placeholder="Select event type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pain">Pain</SelectItem>
-                  <SelectItem value="fatigue">Fatigue</SelectItem>
-                  <SelectItem value="injury">Injury</SelectItem>
-                  <SelectItem value="设备故障">设备故障</SelectItem>
-                  <SelectItem value="皮肤问题">皮肤问题</SelectItem>
-                  <SelectItem value="其他">其他</SelectItem>
+                  <SelectItem value="Pain">Pain</SelectItem>
+                  <SelectItem value="Fatigue">Fatigue</SelectItem>
+                  <SelectItem value="Injury">Injury</SelectItem>
                   <SelectItem value="dropout">Dropout</SelectItem>
                 </SelectContent>
               </Select>
@@ -270,7 +283,6 @@ export function AdverseEventsPage() {
                   <SelectItem value="minor">Minor</SelectItem>
                   <SelectItem value="moderate">Moderate</SelectItem>
                   <SelectItem value="severe">Severe</SelectItem>
-                  <SelectItem value="life_threatening">Life-threatening</SelectItem>
                 </SelectContent>
               </Select>
             </div>

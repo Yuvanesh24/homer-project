@@ -159,11 +159,23 @@ export function PatientDetailPage() {
             Day {currentStudyDay} of study • Started {formatDate(patient.studyStartDate)}
           </p>
         </div>
-        {patient.status === 'active' && (
-          <Button variant="destructive" onClick={handleDropout}>
-            Mark as Dropped Out
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {patient.status === 'active' && (
+            <>
+              <Button variant="default" onClick={async () => {
+                if (confirm('Mark this patient as completed?')) {
+                  await api.put(`/patients/${patient.id}`, { status: 'completed' });
+                  fetchPatient();
+                }
+              }}>
+                Mark as Completed
+              </Button>
+              <Button variant="destructive" onClick={handleDropout}>
+                Mark as Dropped Out
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -363,6 +375,7 @@ export function PatientDetailPage() {
                     <TableHead>Severity</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Reported to PI</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -386,6 +399,21 @@ export function PatientDetailPage() {
                       </TableCell>
                       <TableCell className="max-w-xs truncate">{event.description || '-'}</TableCell>
                       <TableCell>{event.reportedToPi ? 'Yes' : 'No'}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={async () => {
+                            if (confirm('Delete this adverse event?')) {
+                              await api.delete(`/adverse-events/${event.id}`);
+                              fetchPatient();
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -412,6 +440,7 @@ export function PatientDetailPage() {
                     <TableHead>Description</TableHead>
                     <TableHead>Solution</TableHead>
                     <TableHead>Follow-up</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -426,10 +455,25 @@ export function PatientDetailPage() {
                       <TableCell className="max-w-xs truncate">{log.solutionProvided || '-'}</TableCell>
                       <TableCell>
                         {log.followUpRequired ? (
-                          <Badge variant="warning">Due {formatDate(log.followUpDate!)}</Badge>
+                          <Badge variant="warning">Due {log.followUpDate ? formatDate(log.followUpDate) : '-'}</Badge>
                         ) : (
                           '-'
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={async () => {
+                            if (confirm('Delete this issue log?')) {
+                              await api.delete(`/issues/${log.id}`);
+                              fetchPatient();
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

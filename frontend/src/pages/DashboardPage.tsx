@@ -166,11 +166,6 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Upcoming Events
-              <Link to="/patients">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -210,11 +205,6 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Overdue Events
-              <Link to="/patients">
-                <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>

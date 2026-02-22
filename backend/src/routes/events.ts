@@ -95,6 +95,20 @@ router.put('/:id', authenticate, authorize('admin', 'therapist'), async (req: Au
       await prisma.reminder.deleteMany({
         where: { referenceId: id },
       });
+
+      const patientId = event.patientId;
+      const allEvents = await prisma.studyEvent.findMany({
+        where: { patientId },
+      });
+      const completedCount = allEvents.filter(e => e.status === 'completed').length;
+      const totalCount = allEvents.length;
+      
+      if (completedCount === totalCount && totalCount > 0) {
+        await prisma.patient.update({
+          where: { id: patientId },
+          data: { status: 'completed' },
+        });
+      }
     }
 
     res.json(event);

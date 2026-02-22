@@ -81,7 +81,20 @@ export function IssuesPage() {
       return;
     }
     try {
-      await api.post('/issues', formData);
+      const contactDateValue = formData.contactDate ? new Date(formData.contactDate) : new Date();
+      const payload = {
+        patientId: formData.patientId,
+        contactDate: contactDateValue.toISOString(),
+        contactType: formData.contactType,
+        durationMinutes: formData.durationMinutes || 0,
+        issueType: formData.issueType,
+        issueDescription: formData.issueDescription || '',
+        rootCause: formData.rootCause || '',
+        solutionProvided: formData.solutionProvided || '',
+        followUpRequired: formData.followUpRequired,
+        followUpDate: formData.followUpRequired && formData.followUpDate ? new Date(formData.followUpDate).toISOString() : null,
+      };
+      await api.post('/issues', payload);
       fetchIssues();
       setDialogOpen(false);
       setFormData({
@@ -97,6 +110,7 @@ export function IssuesPage() {
         followUpDate: '',
       });
     } catch (error: any) {
+      console.error('Create issue error:', error.response?.data);
       alert(error.response?.data?.error || 'Failed to create issue');
     }
   };
@@ -172,6 +186,7 @@ export function IssuesPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Solution</TableHead>
                   <TableHead>Follow-up</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -191,10 +206,27 @@ export function IssuesPage() {
                     <TableCell className="max-w-xs truncate">{issue.solutionProvided || '-'}</TableCell>
                     <TableCell>
                       {issue.followUpRequired ? (
-                        <Badge variant="warning">Due {formatDate(issue.followUpDate!)}</Badge>
+                        <Badge variant="warning">
+                          Due {issue.followUpDate ? formatDate(issue.followUpDate) : 'Not set'}
+                        </Badge>
                       ) : (
                         '-'
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={async () => {
+                          if (confirm('Delete this issue log?')) {
+                            await api.delete(`/issues/${issue.id}`);
+                            fetchIssues();
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -253,7 +285,7 @@ export function IssuesPage() {
                 <SelectContent>
                   <SelectItem value="technical">Technical</SelectItem>
                   <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="scheduling">Scheduling</SelectItem>
+                  {/* <SelectItem value="scheduling">Scheduling</SelectItem> */}
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

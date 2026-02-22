@@ -24,6 +24,7 @@ export const createPatientSchema = z.object({
   studyStartDate: z.string().or(z.date()),
   enrollmentDate: z.string().or(z.date()),
   phoneNumber: z.string().optional(),
+  status: z.enum(['active', 'dropped_out', 'completed']).optional(),
 });
 
 export const updatePatientSchema = createPatientSchema.partial();
@@ -98,7 +99,7 @@ export const createIssueLogSchema = z.object({
   rootCause: z.string().optional(),
   solutionProvided: z.string().optional(),
   followUpRequired: z.boolean().optional(),
-  followUpDate: z.string().or(z.date()).optional(),
+  followUpDate: z.string().or(z.date()).nullable().optional(),
 });
 
 export const updateEventSchema = z.object({
