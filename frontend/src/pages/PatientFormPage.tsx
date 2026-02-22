@@ -70,7 +70,9 @@ export function PatientFormPage() {
       }
       navigate('/patients');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to save patient');
+      console.error('Patient save error:', error.response?.data);
+      const errMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to save patient';
+      alert(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
     } finally {
       setLoading(false);
     }
@@ -205,20 +207,20 @@ export function PatientFormPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="studyStartDate">Study Start Date</Label>
-                <Input
-                  id="studyStartDate"
-                  type="date"
-                  {...register('studyStartDate')}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="enrollmentDate">Enrollment Date</Label>
                 <Input
                   id="enrollmentDate"
                   type="date"
                   {...register('enrollmentDate')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="studyStartDate">Study Start Date</Label>
+                <Input
+                  id="studyStartDate"
+                  type="date"
+                  {...register('studyStartDate')}
                 />
               </div>
             </div>

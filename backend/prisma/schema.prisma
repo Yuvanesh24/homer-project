@@ -163,10 +163,10 @@ model DeviceSet {
   setNumber            Int           @unique @map("set_number")
   marsDeviceId         String        @unique @map("mars_device_id")
   plutoDeviceId        String        @unique @map("pluto_device_id")
-  laptopNumber         String        @unique @map("laptop_number")
-  modemSerial          String        @unique @map("modem_serial")
-  actigraphLeftSerial  String        @unique @map("actigraph_left_serial")
-  actigraphRightSerial String        @unique @map("actigraph_right_serial")
+  laptopNumber         String        @map("laptop_number")
+  modemSerial          String        @map("modem_serial")
+  actigraphLeftSerial  String        @map("actigraph_left_serial")
+  actigraphRightSerial String        @map("actigraph_right_serial")
   status               DeviceStatus  @default(available)
   assignedPatientId    String?       @unique @map("assigned_patient_id")
   assignmentDate       DateTime?     @map("assignment_date")
@@ -311,8 +311,8 @@ model AuditLog {
 
 model Reminder {
   id            String        @id @default(uuid())
-  patientId     String        @map("patient_id")
-  patient       Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId     String?       @map("patient_id")
+  patient       Patient?      @relation(fields: [patientId], references: [id], onDelete: Cascade)
   reminderType  ReminderType  @map("reminder_type")
   referenceId  String?       @map("reference_id")
   title         String

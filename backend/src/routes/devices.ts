@@ -21,7 +21,18 @@ router.get('/', authenticate, async (req, res) => {
       },
     });
 
-    res.json(devices);
+    const patients = await prisma.patient.findMany({
+      where: { id: { in: devices.filter(d => d.assignedPatientId).map(d => d.assignedPatientId!) } },
+      select: { id: true, patientId: true, name: true }
+    });
+    const patientMap = new Map(patients.map(p => [p.id, p]));
+
+    const devicesWithPatient = devices.map(d => ({
+      ...d,
+      patient: d.assignedPatientId ? patientMap.get(d.assignedPatientId) : null
+    }));
+
+    res.json(devicesWithPatient);
   } catch (error) {
     console.error('Get devices error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -51,34 +62,71 @@ router.get('/:id', authenticate, async (req, res) => {
 
 router.post('/', authenticate, authorize('admin'), async (req, res) => {
   try {
+    console.log('Device create request:', req.body);
     const data = createDeviceSchema.parse(req.body);
 
-    const existing = await prisma.deviceSet.findFirst({
-      where: { setNumber: data.setNumber },
+    let setNumber = data.setNumber;
+    
+    if (!setNumber) {
+      const maxSet = await prisma.deviceSet.findFirst({
+        orderBy: { setNumber: 'desc' },
+        select: { setNumber: true }
+      });
+      setNumber = (maxSet?.setNumber || 0) + 1;
+    }
+
+    const existingSet = await prisma.deviceSet.findUnique({
+      where: { setNumber },
     });
 
-    if (existing) {
-      return res.status(400).json({ error: 'Device set number already exists' });
+    if (existingSet) {
+      const allSets = await prisma.deviceSet.findMany({
+        orderBy: { setNumber: 'asc' },
+        select: { setNumber: true }
+      });
+      let newSetNum = 1;
+      const takenSets = allSets.map(s => s.setNumber);
+      while (takenSets.includes(newSetNum)) {
+        newSetNum++;
+      }
+      setNumber = newSetNum;
     }
+
+    const existingMars = await prisma.deviceSet.findUnique({
+      where: { marsDeviceId: data.marsDeviceId },
+    });
+    if (existingMars) {
+      return res.status(400).json({ error: 'MARS Device ID already exists' });
+    }
+
+    const existingPluto = await prisma.deviceSet.findUnique({
+      where: { plutoDeviceId: data.plutoDeviceId },
+    });
+    if (existingPluto) {
+      return res.status(400).json({ error: 'PLUTO Device ID already exists' });
+    }
+
+    console.log('Creating device with setNumber:', setNumber);
 
     const device = await prisma.deviceSet.create({
       data: {
-        setNumber: data.setNumber,
+        setNumber,
         marsDeviceId: data.marsDeviceId,
         plutoDeviceId: data.plutoDeviceId,
-        laptopNumber: data.laptopNumber,
-        modemSerial: data.modemSerial,
-        actigraphLeftSerial: data.actigraphLeftSerial,
-        actigraphRightSerial: data.actigraphRightSerial,
+        laptopNumber: data.laptopNumber || '',
+        modemSerial: data.modemSerial || '',
+        actigraphLeftSerial: data.actigraphLeftSerial || '',
+        actigraphRightSerial: data.actigraphRightSerial || '',
       },
     });
 
+    console.log('Device created:', device.id);
     res.status(201).json(device);
   } catch (error) {
+    console.error('Create device error:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });
     }
-    console.error('Create device error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

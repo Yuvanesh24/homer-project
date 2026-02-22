@@ -170,9 +170,10 @@ router.post('/:id/recharge', authenticate, authorize('admin', 'therapist'), asyn
 
     await prisma.reminder.deleteMany({
       where: {
-        patientId: undefined,
-        reminderType: 'sim_recharge',
-        referenceId: id,
+        OR: [
+          { patientId: null, reminderType: 'sim_recharge', referenceId: id },
+          { patientId: undefined, reminderType: 'sim_recharge', referenceId: id }
+        ]
       },
     });
 
@@ -180,7 +181,7 @@ router.post('/:id/recharge', authenticate, authorize('admin', 'therapist'), asyn
     if (reminderDueDate > new Date()) {
       await prisma.reminder.create({
         data: {
-          patientId: undefined,
+          patientId: null,
           reminderType: 'sim_recharge',
           referenceId: id,
           title: 'SIM Recharge Required',

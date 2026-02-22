@@ -69,9 +69,9 @@ export interface DeviceSet {
   status: 'available' | 'in_use' | 'under_maintenance';
   assignedPatientId?: string;
   patient?: {
+    id: string;
     patientId: string;
-    status: string;
-    studyStartDate?: string;
+    name?: string;
   };
   assignmentDate?: string;
   expectedReturnDate?: string;

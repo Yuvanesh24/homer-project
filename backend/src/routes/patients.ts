@@ -74,27 +74,39 @@ router.get('/:id', authenticate, async (req, res) => {
 
 router.post('/', authenticate, authorize('admin', 'therapist'), async (req: AuthRequest, res) => {
   try {
+    console.log('Creating patient with data:', req.body);
     const data = createPatientSchema.parse(req.body);
 
-    const patientId = data.patientId || await generatePatientId(data.groupType);
+    const existingPatient = await prisma.patient.findUnique({
+      where: { patientId: data.patientId }
+    });
+    if (existingPatient) {
+      return res.status(400).json({ error: `Patient ID "${data.patientId}" already exists. Please use a different ID.` });
+    }
+
+    const patientId = data.patientId;
     const studyStartDate = new Date(data.studyStartDate);
     const enrollmentDate = new Date(data.enrollmentDate);
+
+    console.log('Parsed data:', { patientId, studyStartDate, enrollmentDate });
 
     const patient = await prisma.patient.create({
       data: {
         patientId,
-        name: data.name,
-        gender: data.gender,
+        name: data.name || null,
+        gender: data.gender || null,
         age: data.age,
         affectedHand: data.affectedHand,
         groupType: data.groupType,
-        vcgAssignment: data.vcgAssignment,
+        vcgAssignment: data.vcgAssignment || null,
         studyStartDate,
         enrollmentDate,
-        phoneNumber: data.phoneNumber,
+        phoneNumber: data.phoneNumber || null,
         createdById: req.user!.id,
       },
     });
+
+    console.log('Patient created:', patient.id);
 
     try {
       await generateStudyEvents(patient.id, studyStartDate, data.groupType);
@@ -110,6 +122,7 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
     res.status(201).json(fullPatient);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return res.status(400).json({ error: error.errors });
     }
     console.error('Create patient error:', error);

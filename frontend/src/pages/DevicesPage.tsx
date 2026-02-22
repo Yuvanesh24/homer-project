@@ -40,7 +40,7 @@ export function DevicesPage() {
   const [selectedDevice, setSelectedDevice] = useState<DeviceSet | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [formData, setFormData] = useState({
-    setNumber: 1,
+    setNumber: '',
     marsDeviceId: '',
     plutoDeviceId: '',
     laptopNumber: '',
@@ -76,15 +76,24 @@ export function DevicesPage() {
 
   const handleCreateDevice = async () => {
     if (!formData.marsDeviceId || !formData.plutoDeviceId) {
-      alert('Please fill in required fields');
+      alert('Please fill in required fields (MARS ID and PLUTO ID)');
       return;
     }
     try {
-      await api.post('/devices', formData);
+      const payload = {
+        marsDeviceId: formData.marsDeviceId,
+        plutoDeviceId: formData.plutoDeviceId,
+        laptopNumber: formData.laptopNumber || undefined,
+        modemSerial: formData.modemSerial || undefined,
+        actigraphLeftSerial: formData.actigraphLeftSerial || undefined,
+        actigraphRightSerial: formData.actigraphRightSerial || undefined,
+        setNumber: formData.setNumber ? parseInt(formData.setNumber as string) : undefined,
+      };
+      await api.post('/devices', payload);
       fetchDevices();
       setDialogOpen(false);
       setFormData({
-        setNumber: 1,
+        setNumber: '',
         marsDeviceId: '',
         plutoDeviceId: '',
         laptopNumber: '',
@@ -93,7 +102,9 @@ export function DevicesPage() {
         actigraphRightSerial: '',
       });
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to create device');
+      console.error('Device error:', error.response?.data);
+      const errMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create device';
+      alert(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
     }
   };
 
@@ -226,7 +237,7 @@ export function DevicesPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(device.status)}</TableCell>
                     <TableCell>
-                      {device.assignedPatientId || '-'}
+                      {device.patient ? `${device.patient.patientId}${device.patient.name ? ` (${device.patient.name})` : ''}` : '-'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       {device.status === 'available' && (
@@ -262,14 +273,13 @@ export function DevicesPage() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
-              <Label>Set Number *</Label>
+              <Label>Set Number</Label>
               <Input
                 type="number"
                 min={1}
-                max={5}
                 value={formData.setNumber}
-                onChange={(e) => setFormData({ ...formData, setNumber: parseInt(e.target.value) || 1 })}
-                placeholder="1"
+                onChange={(e) => setFormData({ ...formData, setNumber: e.target.value })}
+                placeholder="Auto-generated if empty"
               />
             </div>
             <div className="space-y-2">

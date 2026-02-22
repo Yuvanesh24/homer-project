@@ -29,13 +29,13 @@ export const createPatientSchema = z.object({
 export const updatePatientSchema = createPatientSchema.partial();
 
 export const createDeviceSchema = z.object({
-  setNumber: z.number().int().min(1).max(5),
+  setNumber: z.number().int().min(1).optional(),
   marsDeviceId: z.string().min(1),
   plutoDeviceId: z.string().min(1),
-  laptopNumber: z.string().min(1),
-  modemSerial: z.string().min(1),
-  actigraphLeftSerial: z.string().min(1),
-  actigraphRightSerial: z.string().min(1),
+  laptopNumber: z.string().optional(),
+  modemSerial: z.string().optional(),
+  actigraphLeftSerial: z.string().optional(),
+  actigraphRightSerial: z.string().optional(),
 });
 
 export const updateDeviceSchema = createDeviceSchema.partial();
