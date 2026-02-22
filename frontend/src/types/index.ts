@@ -17,6 +17,7 @@ export interface Patient {
   affectedHand: 'left' | 'right';
   groupType: 'intervention' | 'control';
   vcgAssignment?: 'VCG2' | 'VCG3' | 'VCG4_5';
+  a0Date?: string;
   studyStartDate: string;
   enrollmentDate: string;
   phoneNumber?: string;

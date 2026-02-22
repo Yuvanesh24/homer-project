@@ -21,6 +21,7 @@ export const createPatientSchema = z.object({
   affectedHand: z.enum(['left', 'right']),
   groupType: z.enum(['intervention', 'control']),
   vcgAssignment: z.enum(['VCG2', 'VCG3', 'VCG4_5']).optional(),
+  a0Date: z.string().or(z.date()).optional(),
   studyStartDate: z.string().or(z.date()),
   enrollmentDate: z.string().or(z.date()),
   phoneNumber: z.string().optional(),

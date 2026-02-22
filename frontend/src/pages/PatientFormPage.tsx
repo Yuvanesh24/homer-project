@@ -25,6 +25,7 @@ const patientSchema = z.object({
   affectedHand: z.enum(['left', 'right']),
   groupType: z.enum(['intervention', 'control']),
   vcgAssignment: z.enum(['VCG2', 'VCG3', 'VCG4_5']).optional(),
+  a0Date: z.string().optional(),
   studyStartDate: z.string(),
   enrollmentDate: z.string(),
   phoneNumber: z.string().optional(),
@@ -53,6 +54,7 @@ export function PatientFormPage() {
       age: 18,
       affectedHand: 'right',
       groupType: 'intervention',
+      a0Date: '',
       studyStartDate: new Date().toISOString().split('T')[0],
       enrollmentDate: new Date().toISOString().split('T')[0],
     },
@@ -216,13 +218,27 @@ export function PatientFormPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="studyStartDate">Study Start Date</Label>
+                <Label htmlFor="a0Date">A0 - Baseline Assessment Date</Label>
                 <Input
-                  id="studyStartDate"
+                  id="a0Date"
                   type="date"
-                  {...register('studyStartDate')}
+                  {...register('a0Date')}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {groupType === 'intervention' 
+                    ? 'Must be before Study Start Date (Day 0)' 
+                    : 'Must be before Day 1'}
+                </p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="studyStartDate">Study Start Date</Label>
+              <Input
+                id="studyStartDate"
+                type="date"
+                {...register('studyStartDate')}
+              />
             </div>
 
             <div className="space-y-2">

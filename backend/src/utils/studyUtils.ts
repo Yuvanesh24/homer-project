@@ -9,26 +9,34 @@ interface StudyEventTemplate {
 }
 
 const INTERVENTION_EVENTS: StudyEventTemplate[] = [
+  { eventName: 'Baseline Assessment', eventType: 'assessment', studyDay: -1 },
   { eventName: 'Device Installation', eventType: 'device_install', studyDay: 0 },
-  { eventName: 'Robotic Therapy + ADL - Day 1', eventType: 'therapy', studyDay: 1 },
-  { eventName: 'Robotic Therapy + ADL - Day 2', eventType: 'therapy', studyDay: 2 },
-  { eventName: 'Robotic Therapy + ADL - Day 3', eventType: 'therapy', studyDay: 3 },
-  { eventName: 'Follow-up Phone Call', eventType: 'phone_call', studyDay: 7 },
-  { eventName: 'Watch Swap Reminder', eventType: 'reminder', studyDay: 14 },
+  { eventName: 'Robotic Therapy + ADL ', eventType: 'therapy', studyDay: 1 },
+  { eventName: 'Robotic Therapy + ADL ', eventType: 'therapy', studyDay: 2 },
+  { eventName: 'Robotic Therapy + ADL ', eventType: 'therapy', studyDay: 3 },
+  { eventName: 'Follow-up Phone Call ', eventType: 'phone_call', studyDay: 7 },
+  { eventName: 'Watch Swap Reminder + Follow-up Call', eventType: 'reminder', studyDay: 14 },
   { eventName: 'Home Visit + Watch Swap', eventType: 'home_visit', studyDay: 15 },
+  { eventName: 'Follow-up Phone Call', eventType: 'phone_call', studyDay: 21 },
   { eventName: 'Trial Completion', eventType: 'completion', studyDay: 28 },
   { eventName: 'Device & Watch Retrieval', eventType: 'retrieval', studyDay: 29 },
+  { eventName: 'Follow-up Assessment', eventType: 'assessment', studyDay: 30 },
+  { eventName: 'Final Assessment', eventType: 'assessment', studyDay: 180 },
 ];
 
 const CONTROL_EVENTS: StudyEventTemplate[] = [
-  { eventName: 'Manual Exercise + ADL - Day 1', eventType: 'therapy', studyDay: 1 },
-  { eventName: 'Manual Exercise + ADL - Day 2', eventType: 'therapy', studyDay: 2 },
-  { eventName: 'Manual Exercise + ADL - Day 3', eventType: 'therapy', studyDay: 3 },
-  { eventName: 'Follow-up Phone Call', eventType: 'phone_call', studyDay: 7 },
-  { eventName: 'Watch Swap Reminder', eventType: 'reminder', studyDay: 14 },
+  { eventName: 'Baseline Assessment', eventType: 'assessment', studyDay: 0 },
+  { eventName: 'Manual Exercise + ADL ', eventType: 'therapy', studyDay: 1 },
+  { eventName: 'Manual Exercise + ADL ', eventType: 'therapy', studyDay: 2 },
+  { eventName: 'Manual Exercise + ADL ', eventType: 'therapy', studyDay: 3 },
+  { eventName: 'Follow-up Phone Call ', eventType: 'phone_call', studyDay: 7 },
+  { eventName: 'Watch Swap Reminder + Follow-up Call ', eventType: 'reminder', studyDay: 14 },
   { eventName: 'Watch Swap Visit', eventType: 'home_visit', studyDay: 15 },
+  { eventName: 'Follow-up Phone Call ', eventType: 'phone_call', studyDay: 21 },
   { eventName: 'Trial Completion', eventType: 'completion', studyDay: 28 },
   { eventName: 'Watch Retrieval', eventType: 'retrieval', studyDay: 29 },
+  { eventName: 'Follow-up Assessment', eventType: 'assessment', studyDay: 30 },
+  { eventName: 'Final Assessment', eventType: 'assessment', studyDay: 180 },
 ];
 
 export const generatePatientId = async (groupType: GroupType): Promise<string> => {
@@ -43,18 +51,43 @@ export const generatePatientId = async (groupType: GroupType): Promise<string> =
 export const generateStudyEvents = async (
   patientId: string,
   studyStartDate: Date,
-  groupType: GroupType
+  groupType: GroupType,
+  a0Date?: Date | null
 ): Promise<void> => {
   const events = groupType === 'intervention' ? INTERVENTION_EVENTS : CONTROL_EVENTS;
+  
+  const a0ScheduledDate = a0Date || (groupType === 'intervention' 
+    ? addDays(studyStartDate, -1) 
+    : studyStartDate);
 
-  const eventData = events.map((event) => ({
-    patientId,
-    eventName: event.eventName,
-    eventType: event.eventType,
-    studyDay: event.studyDay,
-    scheduledDate: addDays(studyStartDate, event.studyDay),
-    status: 'pending' as EventStatus,
-  }));
+  const eventData = events.map((event) => {
+    let scheduledDate: Date;
+    
+    if (event.eventType === 'assessment') {
+      if (event.studyDay === -1) {
+        scheduledDate = a0Date || addDays(studyStartDate, -1);
+      } else if (event.studyDay === 0 && groupType === 'control') {
+        scheduledDate = a0Date || studyStartDate;
+      } else if (event.studyDay === 30) {
+        scheduledDate = addDays(studyStartDate, 30);
+      } else if (event.studyDay === 180) {
+        scheduledDate = a0Date ? addDays(a0Date, 180) : addDays(studyStartDate, 180);
+      } else {
+        scheduledDate = addDays(studyStartDate, event.studyDay);
+      }
+    } else {
+      scheduledDate = addDays(studyStartDate, event.studyDay);
+    }
+    
+    return {
+      patientId,
+      eventName: event.eventName,
+      eventType: event.eventType,
+      studyDay: event.studyDay,
+      scheduledDate,
+      status: 'pending' as EventStatus,
+    };
+  });
 
   await prisma.studyEvent.createMany({
     data: eventData,
@@ -64,13 +97,14 @@ export const generateStudyEvents = async (
 export const regenerateStudyEvents = async (
   patientId: string,
   studyStartDate: Date,
-  groupType: GroupType
+  groupType: GroupType,
+  a0Date?: Date | null
 ): Promise<void> => {
   await prisma.studyEvent.deleteMany({
     where: { patientId, status: 'pending' },
   });
 
-  await generateStudyEvents(patientId, studyStartDate, groupType);
+  await generateStudyEvents(patientId, studyStartDate, groupType, a0Date);
 };
 
 export const cancelFutureEvents = async (patientId: string): Promise<void> => {

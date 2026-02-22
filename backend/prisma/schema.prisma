@@ -118,6 +118,7 @@ model Patient {
   affectedHand     AffectedHand   @map("affected_hand")
   groupType        GroupType       @map("group_type")
   vcgAssignment    VCGAssignment?  @map("vcg_assignment")
+  a0Date           DateTime?       @map("a0_date")
   studyStartDate   DateTime        @map("study_start_date")
   enrollmentDate   DateTime        @map("enrollment_date")
   phoneNumber      String?         @map("phone_number")

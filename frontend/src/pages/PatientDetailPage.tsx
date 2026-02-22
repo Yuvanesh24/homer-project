@@ -205,6 +205,7 @@ export function PatientDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
+              <p><span className="font-medium">A0 (Baseline):</span> {patient.a0Date ? formatDate(patient.a0Date) : 'Not set'}</p>
               <p><span className="font-medium">Study Start:</span> {formatDate(patient.studyStartDate)}</p>
               <p><span className="font-medium">Enrollment:</span> {formatDate(patient.enrollmentDate)}</p>
               {patient.dropoutDate && (
@@ -269,7 +270,11 @@ export function PatientDetailPage() {
                         'bg-orange-50'
                       )}
                     >
-                      <TableCell className="font-medium">Day {event.studyDay}</TableCell>
+                      <TableCell className="font-medium">
+                        {event.eventType === 'assessment' 
+                          ? (event.studyDay === -1 ? 'A0' : event.studyDay === 30 ? 'A1' : 'A2')
+                          : `Day ${event.studyDay}`}
+                      </TableCell>
                       <TableCell>{event.eventName}</TableCell>
                       <TableCell>{formatDate(event.scheduledDate)}</TableCell>
                       <TableCell>
@@ -492,7 +497,7 @@ export function PatientDetailPage() {
           <DialogHeader>
             <DialogTitle>Update Event Status</DialogTitle>
             <DialogDescription>
-              {selectedEvent?.eventName} - Day {selectedEvent?.studyDay}
+              {selectedEvent?.eventName} - {selectedEvent?.studyDay === -1 ? 'A0' : selectedEvent?.studyDay === 30 ? 'A1' : selectedEvent?.studyDay === 180 ? 'A2' : `Day ${selectedEvent?.studyDay}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

@@ -91,8 +91,9 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
     const patientId = data.patientId;
     const studyStartDate = new Date(data.studyStartDate);
     const enrollmentDate = new Date(data.enrollmentDate);
+    const a0Date = data.a0Date ? new Date(data.a0Date) : null;
 
-    console.log('Parsed data:', { patientId, studyStartDate, enrollmentDate });
+    console.log('Parsed data:', { patientId, studyStartDate, enrollmentDate, a0Date });
 
     const patient = await prisma.patient.create({
       data: {
@@ -103,6 +104,7 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
         affectedHand: data.affectedHand,
         groupType: data.groupType,
         vcgAssignment: data.vcgAssignment || null,
+        a0Date,
         studyStartDate,
         enrollmentDate,
         phoneNumber: data.phoneNumber || null,
@@ -113,7 +115,7 @@ router.post('/', authenticate, authorize('admin', 'therapist'), async (req: Auth
     console.log('Patient created:', patient.id);
 
     try {
-      await generateStudyEvents(patient.id, studyStartDate, data.groupType);
+      await generateStudyEvents(patient.id, studyStartDate, data.groupType, a0Date);
     } catch (eventError) {
       console.error('Failed to generate study events:', eventError);
     }
