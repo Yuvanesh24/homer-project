@@ -125,7 +125,7 @@ export function PatientsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by Patient ID or Phone..."
+                placeholder="Search by Patient ID or Name"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -167,7 +167,7 @@ export function PatientsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Gender</TableHead>
                   <TableHead>Age</TableHead>
-                  <TableHead>Hand</TableHead>
+                  <TableHead>Affected Side</TableHead>
                   <TableHead>Group</TableHead>
                   <TableHead>VCG</TableHead>
                   <TableHead>Study Start</TableHead>

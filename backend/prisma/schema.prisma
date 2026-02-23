@@ -60,16 +60,15 @@ enum ContactType {
 
 enum IssueType {
   technical
-  medical
+  clinical
   scheduling
   other
 }
 
 enum Severity {
-  minor
+  mild
   moderate
   severe
-  life_threatening
 }
 
 enum ReminderType {
@@ -105,6 +104,7 @@ model User {
   issueLogs            IssueLog[]
   simRechargeHistory   SimRechargeHistory[]
   auditLogs            AuditLog[]
+  exercises            PatientExercise[] @relation("ExerciseCreatedBy")
 
   @@map("users")
 }
@@ -136,6 +136,7 @@ model Patient {
   adverseEvents            AdverseEvent[]
   issueLogs                IssueLog[]
   reminders                Reminder[]
+  exercises                PatientExercise[]
 
   @@map("patients")
 }
@@ -324,4 +325,26 @@ model Reminder {
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
   @@map("reminders")
+}
+
+model PatientExercise {
+  id              String        @id @default(uuid())
+  patientId       String        @map("patient_id")
+  patient         Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  groupType       String        @map("group_type")
+  deviceType      String?       @map("device_type")
+  marsMechanisms  String?       @map("mars_mechanisms")
+  plutoMechanisms String?       @map("pluto_mechanisms")
+  controlExercises String?      @map("control_exercises")
+  adlNotes        String?       @map("adl_notes")
+  notes           String?       @map("notes")
+  studyDay        Int           @map("study_day")
+  isCurrent       Boolean       @default(true) @map("is_current")
+  effectiveFrom   DateTime      @default(now()) @map("effective_from")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  createdById     String?       @map("created_by_id")
+  createdBy       User?         @relation("ExerciseCreatedBy", fields: [createdById], references: [id])
+
+  @@map("patient_exercises")
 }

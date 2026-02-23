@@ -150,7 +150,7 @@ export interface AdverseEvent {
   eventDate: string;
   studyDay: number;
   eventType: string;
-  severity: 'minor' | 'moderate' | 'severe' | 'life_threatening';
+  severity: 'mild' | 'moderate' | 'severe' | 'life_threatening';
   description?: string;
   actionTaken?: string;
   reportedToPi: boolean;
@@ -167,7 +167,7 @@ export interface IssueLog {
   contactDate: string;
   contactType: 'phone' | 'home_visit';
   durationMinutes?: number;
-  issueType: 'technical' | 'medical' | 'scheduling' | 'other';
+  issueType: 'technical' | 'clinical' | 'scheduling' | 'other';
   issueDescription?: string;
   rootCause?: string;
   solutionProvided?: string;
@@ -224,5 +224,25 @@ export interface PaginatedResponse<T> {
     limit: number;
     total: number;
     totalPages: number;
+  };
+}
+
+export interface PatientExercise {
+  id: string;
+  patientId: string;
+  groupType: 'intervention' | 'control';
+  deviceType?: 'MARS' | 'PLUTO';
+  marsMechanisms?: string;
+  plutoMechanisms?: string;
+  controlExercises?: string;
+  adlNotes?: string;
+  notes?: string;
+  studyDay: number;
+  isCurrent: boolean;
+  effectiveFrom: string;
+  createdAt: string;
+  createdBy?: {
+    firstName: string;
+    lastName: string;
   };
 }

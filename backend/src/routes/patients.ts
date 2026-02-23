@@ -18,7 +18,7 @@ router.get('/', authenticate, async (req, res) => {
     if (search) {
       where.OR = [
         { patientId: { contains: search as string, mode: 'insensitive' } },
-        { phoneNumber: { contains: search as string, mode: 'insensitive' } },
+        { name: { contains: search as string, mode: 'insensitive' } },
       ];
     }
 

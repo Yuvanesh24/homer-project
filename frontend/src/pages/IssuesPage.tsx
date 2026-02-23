@@ -42,7 +42,7 @@ export function IssuesPage() {
     contactDate: new Date().toISOString(),
     contactType: 'phone' as 'phone' | 'home_visit',
     durationMinutes: 0,
-    issueType: 'technical' as 'technical' | 'medical' | 'scheduling' | 'other',
+    issueType: 'technical' as 'technical' | 'clinical' | 'scheduling' | 'other',
     issueDescription: '',
     rootCause: '',
     solutionProvided: '',
@@ -150,7 +150,7 @@ export function IssuesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {issues.filter((i) => i.issueType === 'medical').length}
+              {issues.filter((i) => i.issueType === 'clinical').length}
             </div>
           </CardContent>
         </Card>
@@ -270,7 +270,7 @@ export function IssuesPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="phone">Phone</SelectItem>
-                  <SelectItem value="home_visit">Home Visit</SelectItem>
+                  <SelectItem value="home_visit">In person</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -284,7 +284,7 @@ export function IssuesPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="technical">Technical</SelectItem>
-                  <SelectItem value="medical">Medical</SelectItem>
+                  <SelectItem value="clinical">Clinical</SelectItem>
                   {/* <SelectItem value="scheduling">Scheduling</SelectItem> */}
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>

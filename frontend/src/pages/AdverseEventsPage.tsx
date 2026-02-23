@@ -42,7 +42,7 @@ export function AdverseEventsPage() {
     eventDate: new Date().toISOString().split('T')[0],
     studyDay: 0,
     eventType: '',
-    severity: 'minor',
+    severity: 'mild',
     description: '',
     actionTaken: '',
     reportedToPi: false,
@@ -88,7 +88,7 @@ export function AdverseEventsPage() {
         eventDate: new Date().toISOString().split('T')[0],
         studyDay: 0,
         eventType: '',
-        severity: 'minor',
+        severity: 'mild',
         description: '',
         actionTaken: '',
         reportedToPi: false,
@@ -101,14 +101,12 @@ export function AdverseEventsPage() {
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
-      case 'minor':
-        return <Badge variant="secondary">Minor</Badge>;
+      case 'mild':
+        return <Badge variant="secondary">Mild</Badge>;
       case 'moderate':
         return <Badge variant="warning">Moderate</Badge>;
       case 'severe':
         return <Badge variant="destructive">Severe</Badge>;
-      case 'life_threatening':
-        return <Badge variant="destructive">Life-threatening</Badge>;
       default:
         return <Badge>{severity}</Badge>;
     }
@@ -135,11 +133,11 @@ export function AdverseEventsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Minor</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Mild</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {events.filter((e) => e.severity === 'minor').length}
+              {events.filter((e) => e.severity === 'mild').length}
             </div>
           </CardContent>
         </Card>
@@ -257,30 +255,22 @@ export function AdverseEventsPage() {
             </div>
             <div className="space-y-2">
               <Label>Event Type *</Label>
-              <Select value={formData.eventType} onValueChange={(v) => {
-                setFormData({ 
+              <Input 
+                value={formData.eventType} 
+                onChange={(e) => setFormData({ 
                   ...formData, 
-                  eventType: v,
-                  requiresDropout: v === 'dropout' ? true : formData.requiresDropout
-                });
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select event type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pain">Pain</SelectItem>
-                  <SelectItem value="Fatigue">Fatigue</SelectItem>
-                  <SelectItem value="Injury">Injury</SelectItem>
-                  <SelectItem value="dropout">Dropout</SelectItem>
-                </SelectContent>
-              </Select>
+                  eventType: e.target.value,
+                  requiresDropout: e.target.value.toLowerCase() === 'dropout' ? true : formData.requiresDropout
+                })} 
+                placeholder="Enter event type" 
+              />
             </div>
             <div className="space-y-2">
               <Label>Severity</Label>
               <Select value={formData.severity} onValueChange={(v) => setFormData({ ...formData, severity: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="minor">Minor</SelectItem>
+                  <SelectItem value="mild">Mild</SelectItem>
                   <SelectItem value="moderate">Moderate</SelectItem>
                   <SelectItem value="severe">Severe</SelectItem>
                 </SelectContent>
