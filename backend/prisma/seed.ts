@@ -7,16 +7,17 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  const passwordHash = await bcrypt.hash('admin123', 12);
+  const adminPasswordHash = await bcrypt.hash('Yuvan@123', 12);
+  const therapistPasswordHash = await bcrypt.hash('Nidhi@123', 12);
   
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@homer.org' },
-    update: {},
+    where: { email: 'yuvanesh@homer.org' },
+    update: { passwordHash: adminPasswordHash },
     create: {
-      email: 'admin@homer.org',
-      passwordHash,
-      firstName: 'Admin',
-      lastName: 'User',
+      email: 'yuvanesh@homer.org',
+      passwordHash: adminPasswordHash,
+      firstName: 'Yuvanesh',
+      lastName: '',
       role: 'admin',
     },
   });
@@ -24,13 +25,13 @@ async function main() {
   console.log('Created admin user:', admin.email);
 
   const therapist = await prisma.user.upsert({
-    where: { email: 'therapist@homer.org' },
-    update: {},
+    where: { email: 'nidhi@homer.org' },
+    update: { passwordHash: therapistPasswordHash },
     create: {
-      email: 'therapist@homer.org',
-      passwordHash,
-      firstName: 'Jane',
-      lastName: 'Smith',
+      email: 'nidhi@homer.org',
+      passwordHash: therapistPasswordHash,
+      firstName: 'Nidhi',
+      lastName: 'Mislankar',
       role: 'therapist',
     },
   });

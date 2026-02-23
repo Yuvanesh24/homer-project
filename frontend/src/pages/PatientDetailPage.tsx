@@ -272,7 +272,7 @@ export function PatientDetailPage() {
                     >
                       <TableCell className="font-medium">
                         {event.eventType === 'assessment' 
-                          ? (event.studyDay === -1 ? 'A0' : event.studyDay === 30 ? 'A1' : 'A2')
+                          ? (event.studyDay <= 0 ? 'A0' : event.studyDay === 30 ? 'A1' : 'A2')
                           : `Day ${event.studyDay}`}
                       </TableCell>
                       <TableCell>{event.eventName}</TableCell>
@@ -497,7 +497,9 @@ export function PatientDetailPage() {
           <DialogHeader>
             <DialogTitle>Update Event Status</DialogTitle>
             <DialogDescription>
-              {selectedEvent?.eventName} - {selectedEvent?.studyDay === -1 ? 'A0' : selectedEvent?.studyDay === 30 ? 'A1' : selectedEvent?.studyDay === 180 ? 'A2' : `Day ${selectedEvent?.studyDay}`}
+              {selectedEvent?.eventName} - {selectedEvent?.eventType === 'assessment' 
+                ? (selectedEvent?.studyDay <= 0 ? 'A0' : selectedEvent?.studyDay === 30 ? 'A1' : 'A2')
+                : `Day ${selectedEvent?.studyDay}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

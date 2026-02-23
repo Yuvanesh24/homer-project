@@ -11,7 +11,7 @@ router.get('/patients', authenticate, async (req, res) => {
     });
 
     const csv = [
-      'Patient ID,Name,Gender,Age,Affected Hand,Group,VCG Assignment,Study Start,Enrollment Date,Phone,Status',
+      'Patient ID,Name,Gender,Age,Affected Hand,Group,VCG Assignment,A0 Date,Study Start,Enrollment Date,Phone,Status',
       ...patients.map((p: any) =>
         [
           p.patientId,
@@ -21,8 +21,9 @@ router.get('/patients', authenticate, async (req, res) => {
           p.affectedHand,
           p.groupType,
           p.vcgAssignment || '',
-          p.studyStartDate.toISOString().split('T')[0],
-          p.enrollmentDate.toISOString().split('T')[0],
+          p.a0Date ? new Date(p.a0Date).toISOString().split('T')[0] : '',
+          new Date(p.studyStartDate).toISOString().split('T')[0],
+          new Date(p.enrollmentDate).toISOString().split('T')[0],
           p.phoneNumber || '',
           p.status,
         ].join(',')
@@ -149,7 +150,7 @@ router.get('/patient/:id', authenticate, async (req, res) => {
 
     let csv = 'HOMER Study - Individual Patient Report\n';
     csv += `\nPatient Information\n`;
-    csv += `Patient ID,Name,Gender,Age,Affected Hand,Group,VCG Assignment,Study Start,Enrollment Date,Phone,Status\n`;
+    csv += `Patient ID,Name,Gender,Age,Affected Hand,Group,VCG Assignment,A0 Date,Study Start,Enrollment Date,Phone,Status\n`;
     csv += [
       patient.patientId,
       patient.name || '',
@@ -158,6 +159,7 @@ router.get('/patient/:id', authenticate, async (req, res) => {
       patient.affectedHand,
       patient.groupType,
       patient.vcgAssignment || '',
+      patient.a0Date ? patient.a0Date.toISOString().split('T')[0] : '',
       patient.studyStartDate.toISOString().split('T')[0],
       patient.enrollmentDate.toISOString().split('T')[0],
       patient.phoneNumber || '',

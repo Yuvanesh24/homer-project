@@ -111,7 +111,7 @@ router.put('/:id', authenticate, authorize('admin', 'therapist'), async (req, re
   }
 });
 
-router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/:id', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.issueLog.delete({ where: { id } });

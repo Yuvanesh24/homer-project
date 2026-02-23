@@ -153,14 +153,17 @@ router.put('/:id', authenticate, authorize('admin', 'therapist'), async (req: Au
     if (data.enrollmentDate) {
       updateData.enrollmentDate = new Date(data.enrollmentDate);
     }
+    if (data.a0Date) {
+      updateData.a0Date = data.a0Date ? new Date(data.a0Date) : null;
+    }
 
     const patient = await prisma.patient.update({
       where: { id },
       data: updateData,
     });
 
-    if (data.studyStartDate) {
-      await regenerateStudyEvents(id, new Date(data.studyStartDate), existingPatient.groupType);
+    if (data.studyStartDate || data.a0Date) {
+      await regenerateStudyEvents(id, new Date(data.studyStartDate || existingPatient.studyStartDate), existingPatient.groupType, data.a0Date ? new Date(data.a0Date) : existingPatient.a0Date);
     }
 
     const fullPatient = await prisma.patient.findUnique({
@@ -244,14 +247,30 @@ router.get('/:id/timeline', authenticate, async (req, res) => {
   }
 });
 
-router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/:id', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.patient.delete({ where: { id } });
+    
+    await prisma.$transaction(async (tx) => {
+      await tx.deviceSet.updateMany({
+        where: { assignedPatientId: id },
+        data: { assignedPatientId: null, status: 'available', returnDate: new Date() }
+      });
+      
+      await tx.studyEvent.deleteMany({ where: { patientId: id } });
+      await tx.interventionSession.deleteMany({ where: { patientId: id } });
+      await tx.controlSession.deleteMany({ where: { patientId: id } });
+      await tx.adverseEvent.deleteMany({ where: { patientId: id } });
+      await tx.issueLog.deleteMany({ where: { patientId: id } });
+      await tx.reminder.deleteMany({ where: { patientId: id } });
+      
+      await tx.patient.delete({ where: { id } });
+    });
+    
     res.json({ message: 'Patient deleted successfully' });
   } catch (error) {
     console.error('Delete patient error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to delete patient' });
   }
 });
 

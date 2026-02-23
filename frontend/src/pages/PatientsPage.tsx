@@ -52,12 +52,13 @@ export function PatientsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this patient?')) {
+    if (confirm('Are you sure you want to delete this patient? This will also delete all related data.')) {
       try {
         await api.delete(`/patients/${id}`);
         fetchPatients();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to delete patient:', error);
+        alert(error.response?.data?.error || 'Failed to delete patient');
       }
     }
   };
