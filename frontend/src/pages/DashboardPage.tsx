@@ -21,6 +21,8 @@ export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [actions, setActions] = useState<DashboardActions | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const [showAllOverdue, setShowAllOverdue] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,15 +165,26 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Upcoming Events
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Upcoming Events (Today & Tomorrow)
+              </CardTitle>
+              {actions?.upcomingEvents && actions.upcomingEvents.length > 5 && (
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  onClick={() => setShowAllUpcoming(!showAllUpcoming)}
+                >
+                  {showAllUpcoming ? 'Show Less' : 'View All'}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {actions?.upcomingEvents && actions.upcomingEvents.length > 0 ? (
               <div className="space-y-3">
-                {actions.upcomingEvents.slice(0, 5).map((event) => (
+                {(showAllUpcoming ? actions.upcomingEvents : actions.upcomingEvents.slice(0, 5)).map((event) => (
                   <div
                     key={event.id}
                     className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
@@ -202,15 +215,26 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Overdue Events
-            </CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Overdue Events
+              </CardTitle>
+              {actions?.overdueEvents && actions.overdueEvents.length > 5 && (
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  onClick={() => setShowAllOverdue(!showAllOverdue)}
+                >
+                  {showAllOverdue ? 'Show Less' : 'View All'}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {actions?.overdueEvents && actions.overdueEvents.length > 0 ? (
               <div className="space-y-3">
-                {actions.overdueEvents.slice(0, 5).map((event) => (
+                {(showAllOverdue ? actions.overdueEvents : actions.overdueEvents.slice(0, 5)).map((event) => (
                   <div
                     key={event.id}
                     className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200"
@@ -254,7 +278,11 @@ export function DashboardPage() {
                 >
                   <div>
                     <p className="font-medium">{sim.simNumber}</p>
-                    <p className="text-sm text-muted-foreground uppercase">{sim.provider}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {sim.modemNumber && <span className="font-medium">{sim.modemNumber}</span>}
+                      {sim.modemNumber && ' - '}
+                      {sim.provider.toUpperCase()}
+                    </p>
                   </div>
                   <Badge variant="warning">Expires {formatDate(sim.expiryDate)}</Badge>
                 </div>

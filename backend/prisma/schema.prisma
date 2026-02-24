@@ -185,6 +185,7 @@ model DeviceSet {
 model SimCard {
   id                   String      @id @default(uuid())
   simNumber            String      @unique @map("sim_number")
+  modemNumber          String?     @map("modem_number")
   provider             SimProvider
   linkedDeviceSetId    String?     @map("linked_device_set_id")
   linkedDeviceSet      DeviceSet?  @relation(fields: [linkedDeviceSetId], references: [id])

@@ -44,6 +44,7 @@ export const updateDeviceSchema = createDeviceSchema.partial();
 
 export const createSimSchema = z.object({
   simNumber: z.string().min(1),
+  modemNumber: z.string().optional(),
   provider: z.enum(['airtel', 'jio']),
   linkedDeviceSetId: z.string().uuid().optional(),
 });

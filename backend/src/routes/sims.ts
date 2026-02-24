@@ -53,6 +53,7 @@ router.get('/expiring', authenticate, async (req, res) => {
       include: {
         linkedDeviceSet: { select: { setNumber: true } },
       },
+      orderBy: { expiryDate: 'asc' },
     });
 
     res.json(sims.map((sim) => ({
@@ -109,6 +110,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
     const sim = await prisma.simCard.create({
       data: {
         simNumber: data.simNumber,
+        modemNumber: data.modemNumber || null,
         provider: data.provider,
         linkedDeviceSetId: data.linkedDeviceSetId,
       },

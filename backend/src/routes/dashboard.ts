@@ -100,6 +100,7 @@ router.get('/actions', authenticate, async (req, res) => {
         select: {
           id: true,
           simNumber: true,
+          modemNumber: true,
           provider: true,
           expiryDate: true,
         },

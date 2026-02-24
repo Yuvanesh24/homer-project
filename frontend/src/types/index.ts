@@ -83,6 +83,7 @@ export interface DeviceSet {
 export interface SimCard {
   id: string;
   simNumber: string;
+  modemNumber?: string;
   provider: 'airtel' | 'jio';
   linkedDeviceSetId?: string;
   linkedDeviceSet?: {
@@ -212,6 +213,7 @@ export interface DashboardActions {
   expiringSims: {
     id: string;
     simNumber: string;
+    modemNumber?: string;
     provider: string;
     expiryDate: string;
   }[];

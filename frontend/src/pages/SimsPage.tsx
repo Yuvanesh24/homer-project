@@ -40,6 +40,7 @@ export function SimsPage() {
   const [selectedSim, setSelectedSim] = useState<SimCard | null>(null);
   const [formData, setFormData] = useState({
     simNumber: '',
+    modemNumber: '',
     provider: 'airtel' as 'airtel' | 'jio',
   });
   const [rechargeData, setRechargeData] = useState({
@@ -71,7 +72,7 @@ export function SimsPage() {
       await api.post('/sims', formData);
       fetchSims();
       setDialogOpen(false);
-      setFormData({ simNumber: '', provider: 'airtel' });
+      setFormData({ simNumber: '', modemNumber: '', provider: 'airtel' });
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to create SIM');
     }
@@ -184,6 +185,7 @@ export function SimsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>SIM Number</TableHead>
+                  <TableHead>Modem</TableHead>
                   <TableHead>Provider</TableHead>
                   <TableHead>Recharge Date</TableHead>
                   <TableHead>Expiry Date</TableHead>
@@ -198,6 +200,7 @@ export function SimsPage() {
                     className={sim.isExpired ? 'bg-red-50' : sim.isExpiringSoon ? 'bg-orange-50' : ''}
                   >
                     <TableCell className="font-medium">{sim.simNumber}</TableCell>
+                    <TableCell>{sim.modemNumber || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={sim.provider === 'airtel' ? 'info' : 'success'}>
                         {sim.provider.toUpperCase()}
@@ -248,6 +251,14 @@ export function SimsPage() {
                 value={formData.simNumber}
                 onChange={(e) => setFormData({ ...formData, simNumber: e.target.value })}
                 placeholder="Enter SIM number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Modem Number (Optional)</Label>
+              <Input
+                value={formData.modemNumber}
+                onChange={(e) => setFormData({ ...formData, modemNumber: e.target.value })}
+                placeholder="e.g., MODEM 1"
               />
             </div>
             <div className="space-y-2">
