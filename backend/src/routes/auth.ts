@@ -13,14 +13,17 @@ router.get('/test-users', async (req, res) => {
   res.json({ count: users.length, users: users.map(u => ({ email: u.email, role: u.role, isActive: u.isActive })) });
 });
 
-router.post('/reset-password', async (req, res) => {
-  const { email, newPassword } = req.body;
-  const passwordHash = await bcrypt.hash(newPassword, 12);
+router.get('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.query;
+  if (!email || !newPassword) {
+    return res.status(400).json({ error: 'Missing email or newPassword' });
+  }
+  const passwordHash = await bcrypt.hash(newPassword as string, 12);
   await prisma.user.update({
-    where: { email },
+    where: { email: email as string },
     data: { passwordHash },
   });
-  res.json({ success: true, message: 'Password updated' });
+  res.json({ success: true, message: 'Password updated for ' + email });
 });
 
 router.post('/login', async (req, res) => {
