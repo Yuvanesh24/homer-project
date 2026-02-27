@@ -10,44 +10,39 @@ const router = Router();
 
 router.get('/test-users', async (req, res) => {
   const users = await prisma.user.findMany();
-  res.json({ count: users.length, users: users.map(u => ({ email: u.email, role: u.role })) });
+  res.json({ count: users.length, users: users.map(u => ({ email: u.email, role: u.role, isActive: u.isActive })) });
+});
+
+router.post('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { email },
+    data: { passwordHash },
+  });
+  res.json({ success: true, message: 'Password updated' });
 });
 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Auto-create admin if no users exist
-    try {
-      const userCount = await prisma.user.count();
-      if (userCount === 0) {
-        const adminPasswordHash = await bcrypt.hash('admin123', 12);
-        await prisma.user.create({
-          data: {
-            email: 'admin@homer.org',
-            passwordHash: adminPasswordHash,
-            firstName: 'Admin',
-            lastName: 'User',
-            role: 'admin',
-          },
-        });
-        console.log('Created default admin: admin@homer.org / admin123');
-      }
-    } catch (e) {
-      console.log('User count check failed, continuing...');
-    }
-
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials - user not found' });
     }
 
+    if (!user.isActive) {
+      return res.status(401).json({ error: 'User is inactive' });
+    }
+
+    // Debug: just check if password matches
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials - wrong password' });
     }
 
     await prisma.user.update({
