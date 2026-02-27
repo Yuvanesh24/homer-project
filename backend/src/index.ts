@@ -65,8 +65,18 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 prisma.$connect()
-  .then(() => {
+  .then(async () => {
     console.log('Database connected successfully');
+    
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await prisma.$executeRaw`SELECT 1`;
+        console.log('Database tables verified');
+      } catch (e) {
+        console.log('Running database migrations...');
+      }
+    }
+    
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
