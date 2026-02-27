@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://homer-backend.onrender.com/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://homer-backend-nmnq.onrender.com/api/$1" }
   ]
 }
