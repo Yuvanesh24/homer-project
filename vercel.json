@@ -1,10 +1,15 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "framework": "vite",
+  "builds": [
+    {
+      "src": "frontend",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "cd frontend && npm install && npm run build",
+        "outputDirectory": "dist"
+      }
+    }
+  ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "https://homer-backend-nmnq.onrender.com/api/$1" },
-    { "src": "/(.*)", "dest": "/frontend/dist/index.html" }
+    { "src": "/api/(.*)", "dest": "https://homer-backend-nmnq.onrender.com/api/$1" }
   ]
 }
