@@ -2,7 +2,9 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "framework": "vite",
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "https://homer-backend-nmnq.onrender.com/api/:path*" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "https://homer-backend-nmnq.onrender.com/api/$1" },
+    { "src": "/(.*)", "dest": "/frontend/dist/index.html" }
   ]
 }
