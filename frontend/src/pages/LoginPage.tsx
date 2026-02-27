@@ -388,7 +388,7 @@ export function LoginPage() {
           <div className="logo-row">
             <div className="logo-box">H</div>
             <div>
-              <div className="logo-name">NY Dashboard</div>
+              <div className="logo-name">ANY Dashboard</div>
               <div className="logo-tag">HOMER System</div>
             </div>
           </div>

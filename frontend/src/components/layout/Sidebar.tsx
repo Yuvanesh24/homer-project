@@ -28,7 +28,11 @@ const navigation = [
   { name: 'Reports', href: '/reports', icon: FileText },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ onNavigate }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -37,6 +41,10 @@ export function Sidebar() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleLinkClick = () => {
+    if (onNavigate) onNavigate();
   };
 
   return (
@@ -64,7 +72,7 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="text-slate-400 hover:text-white"
+          className="text-slate-400 hover:text-white hidden lg:flex"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -82,8 +90,9 @@ export function Sidebar() {
               <li key={item.name}>
                 <Link
                   to={item.href}
+                  onClick={handleLinkClick}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                     isActive
                       ? 'bg-blue-600 text-white'
                       : 'text-slate-400 hover:bg-slate-800 hover:text-white',
