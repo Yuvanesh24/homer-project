@@ -26,6 +26,31 @@ router.get('/reset-password', async (req, res) => {
   res.json({ success: true, message: 'Password updated for ' + email });
 });
 
+router.get('/setup-users', async (req, res) => {
+  // Create default users
+  const users = [
+    { email: 'yuvanesh@homer.org', password: 'Yuvan@123', firstName: 'Yuvanesh', lastName: '', role: 'admin' as const },
+    { email: 'nidhi@homer.org', password: 'Nidhi@123', firstName: 'Nidhi', lastName: 'Mislankar', role: 'therapist' as const },
+  ];
+  
+  for (const u of users) {
+    const passwordHash = await bcrypt.hash(u.password, 12);
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: { passwordHash },
+      create: {
+        email: u.email,
+        passwordHash,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        role: u.role,
+        isActive: true,
+      },
+    });
+  }
+  res.json({ success: true, message: 'Users created/updated' });
+});
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
