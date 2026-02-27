@@ -69,11 +69,21 @@ prisma.$connect()
     console.log('Database connected successfully');
     
     if (process.env.NODE_ENV === 'production') {
-      try {
-        await prisma.$executeRaw`SELECT 1`;
-        console.log('Database tables verified');
-      } catch (e) {
-        console.log('Running database migrations...');
+      const userCount = await prisma.user.count();
+      if (userCount === 0) {
+        console.log('Creating default admin user...');
+        const bcrypt = require('bcryptjs');
+        const adminPasswordHash = await bcrypt.hash('admin123', 12);
+        await prisma.user.create({
+          data: {
+            email: 'admin@homer.org',
+            passwordHash: adminPasswordHash,
+            firstName: 'Admin',
+            lastName: 'User',
+            role: 'admin',
+          },
+        });
+        console.log('Default admin created: admin@homer.org / admin123');
       }
     }
     
