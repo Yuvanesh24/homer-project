@@ -2,13 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 
-export interface AuthRequest extends Request {
+export type AuthRequest = Request & {
   user?: {
     id: string;
     email: string;
     role: string;
   };
-}
+};
 
 export const authenticate = async (
   req: AuthRequest,
