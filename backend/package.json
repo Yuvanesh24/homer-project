@@ -22,7 +22,9 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.22.4",
-    "date-fns": "^3.6.0"
+    "date-fns": "^3.6.0",
+    "dropbox": "^10.34.0",
+    "fetch": "^1.1.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

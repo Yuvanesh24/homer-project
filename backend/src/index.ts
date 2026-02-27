@@ -38,6 +38,7 @@ import issueRoutes from './routes/issues';
 import reminderRoutes from './routes/reminders';
 import dashboardRoutes from './routes/dashboard';
 import exportRoutes from './routes/export';
+import syncRoutes from './routes/sync';
 import exerciseRoutes from './routes/exercises';
 
 app.use('/api/auth', authRoutes);
@@ -51,6 +52,7 @@ app.use('/api/issues', issueRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/sync', syncRoutes);
 app.use('/api/exercises', exerciseRoutes);
 
 app.get('/api/health', (req, res) => {
