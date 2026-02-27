@@ -12,6 +12,22 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
+    // Auto-create admin if no users exist
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      const adminPasswordHash = await bcrypt.hash('admin123', 12);
+      await prisma.user.create({
+        data: {
+          email: 'admin@homer.org',
+          passwordHash: adminPasswordHash,
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin',
+        },
+      });
+      console.log('Created default admin: admin@homer.org / admin123');
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
