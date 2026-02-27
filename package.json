@@ -4,7 +4,8 @@
   "scripts": {
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",
-    "build": "cd backend && npm run build",
+    "build": "cd backend && npm run build && npm run db:push",
+    "db:push": "cd backend && npm run db:push",
     "start": "cd backend && npm run start"
   },
   "engines": {
