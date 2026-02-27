@@ -3,7 +3,6 @@
   "outputDirectory": "frontend/dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://homer-backend-nmnq.onrender.com/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/:path*", "destination": "https://homer-backend-nmnq.onrender.com/api/:path*" }
   ]
 }
