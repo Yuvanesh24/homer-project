@@ -2,12 +2,12 @@
   "name": "homer-project",
   "version": "1.0.0",
   "scripts": {
-    "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",
-    "build": "cd backend && npm run build && npm run db:push && npm run db:seed",
-    "db:push": "cd backend && npm run db:push",
-    "db:seed": "cd backend && npm run db:seed",
+    "build": "cd frontend && npm run build",
     "start": "cd backend && npm run start"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
