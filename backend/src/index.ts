@@ -67,26 +67,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 prisma.$connect()
   .then(async () => {
     console.log('Database connected successfully');
-    
-    if (process.env.NODE_ENV === 'production') {
-      const userCount = await prisma.user.count();
-      if (userCount === 0) {
-        console.log('Creating default admin user...');
-        const bcrypt = require('bcryptjs');
-        const adminPasswordHash = await bcrypt.hash('admin123', 12);
-        await prisma.user.create({
-          data: {
-            email: 'admin@homer.org',
-            passwordHash: adminPasswordHash,
-            firstName: 'Admin',
-            lastName: 'User',
-            role: 'admin',
-          },
-        });
-        console.log('Default admin created: admin@homer.org / admin123');
-      }
-    }
-    
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
