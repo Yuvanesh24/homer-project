@@ -8,6 +8,11 @@ import { z } from 'zod';
 
 const router = Router();
 
+router.get('/test-users', async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.json({ count: users.length, users: users.map(u => ({ email: u.email, role: u.role })) });
+});
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
