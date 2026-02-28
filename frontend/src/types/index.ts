@@ -67,6 +67,8 @@ export interface DeviceSet {
   modemSerial: string;
   actigraphLeftSerial: string;
   actigraphRightSerial: string;
+  actigraphLeft2Serial?: string;
+  actigraphRight2Serial?: string;
   status: 'available' | 'in_use' | 'under_maintenance';
   assignedPatientId?: string;
   patient?: {

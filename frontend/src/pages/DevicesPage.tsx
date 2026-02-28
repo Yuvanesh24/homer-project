@@ -136,6 +136,24 @@ export function DevicesPage() {
     }
   };
 
+  const handleSwapActigraphs = async (device: DeviceSet) => {
+    if (!device.actigraphLeft2Serial || !device.actigraphRight2Serial) {
+      alert('No backup actigraphs available to swap');
+      return;
+    }
+    if (!confirm(`Swap actigraphs?\n\nCurrent: ${device.actigraphLeftSerial}/${device.actigraphRightSerial}\nBackup: ${device.actigraphLeft2Serial}/${device.actigraphRight2Serial}`)) {
+      return;
+    }
+    try {
+      await api.post(`/devices/${device.id}/swap-actigraphs`);
+      fetchDevices();
+      alert('Actigraphs swapped successfully!');
+    } catch (error) {
+      console.error('Failed to swap actigraphs:', error);
+      alert('Failed to swap actigraphs');
+    }
+  };
+
   const handleDeleteDevice = async (device: DeviceSet) => {
     if (confirm('Are you sure you want to delete this device?')) {
       try {

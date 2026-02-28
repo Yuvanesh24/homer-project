@@ -59,12 +59,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Public endpoint to create tables - run once
-app.get('/api/setup', async (req, res) => {
+// Public endpoint to create/update tables
+app.get('/api/migrate', async (req, res) => {
   try {
     const { execSync } = require('child_process');
     execSync('npx prisma db push', { stdio: 'inherit' });
-    res.json({ success: true, message: 'Database tables created' });
+    res.json({ success: true, message: 'Database migrated successfully' });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }

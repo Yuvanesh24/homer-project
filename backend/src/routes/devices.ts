@@ -223,4 +223,36 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// Swap actigraph watches (for 15th day swap)
+router.post('/:id/swap-actigraphs', authenticate, authorize('admin', 'therapist'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const device = await prisma.deviceSet.findUnique({ where: { id } });
+    if (!device) {
+      return res.status(404).json({ error: 'Device set not found' });
+    }
+
+    if (!device.actigraphLeft2Serial || !device.actigraphRight2Serial) {
+      return res.status(400).json({ error: 'No backup actigraphs available to swap' });
+    }
+
+    // Swap the watches
+    const updatedDevice = await prisma.deviceSet.update({
+      where: { id },
+      data: {
+        actigraphLeftSerial: device.actigraphLeft2Serial,
+        actigraphRightSerial: device.actigraphRight2Serial,
+        actigraphLeft2Serial: device.actigraphLeftSerial,
+        actigraphRight2Serial: device.actigraphRightSerial,
+      },
+    });
+
+    res.json(updatedDevice);
+  } catch (error) {
+    console.error('Swap actigraphs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
