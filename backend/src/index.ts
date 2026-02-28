@@ -67,6 +67,35 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 prisma.$connect()
   .then(async () => {
     console.log('Database connected successfully');
+    
+    // Auto-create tables in production
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await prisma.$executeRaw`SELECT 1 FROM users LIMIT 1`;
+        console.log('Tables already exist');
+      } catch (e) {
+        console.log('Tables do not exist, creating...');
+        const { execSync } = require('child_process');
+        execSync('npx prisma db push --skip-generate', { stdio: 'inherit', cwd: __dirname });
+        console.log('Tables created successfully');
+        
+        // Create default users
+        const bcrypt = require('bcryptjs');
+        const adminPasswordHash = await bcrypt.hash('Yuvan@123', 12);
+        const therapistPasswordHash = await bcrypt.hash('Nidhi@123', 12);
+        
+        await prisma.user.create({
+          data: { email: 'yuvanesh@homer.org', passwordHash: adminPasswordHash, firstName: 'Yuvanesh', lastName: '', role: 'admin', isActive: true }
+        }).catch(() => {});
+        
+        await prisma.user.create({
+          data: { email: 'nidhi@homer.org', passwordHash: therapistPasswordHash, firstName: 'Nidhi', lastName: 'Mislankar', role: 'therapist', isActive: true }
+        }).catch(() => {});
+        
+        console.log('Default users created');
+      }
+    }
+    
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
