@@ -218,6 +218,20 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
 });
 
 // Force delete (hard delete) SIM - allows re-adding same number
+router.delete('/by-number/:simNumber/force', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { simNumber } = req.params;
+    await prisma.simCard.deleteMany({
+      where: { simNumber },
+    });
+    res.json({ message: 'SIM card permanently deleted by number' });
+  } catch (error) {
+    console.error('Force delete SIM by number error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Force delete (hard delete) SIM - allows re-adding same number
 router.delete('/:id/force', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { id } = req.params;

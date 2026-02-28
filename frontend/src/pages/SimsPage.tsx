@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -93,24 +94,12 @@ export function SimsPage() {
 const handleDeleteSim = async (sim: SimCard) => {
     if (confirm('Deactivate this SIM? (You can reactivate later)')) {
       try {
-        await api.delete(`/sims/${sim.id}`);
+await api.delete(`/sims/${sim.id}`);
         fetchSims();
       } catch (error) {
         console.error('Failed to delete SIM:', error);
       }
     }
-  };
-
-  const handlePermanentDelete = async (sim: SimCard) => {
-    if (confirm(`PERMANENTLY delete SIM ${sim.simNumber}? This will allow you to add a new SIM with the same number.`)) {
-      try {
-        await api.delete(`/sims/${sim.id}/force`);
-        fetchSims();
-      } catch (error) {
-        console.error('Failed to delete SIM:', error);
-      }
-    }
-  };
   };
 
   const openRechargeDialog = (sim: SimCard) => {
@@ -122,14 +111,45 @@ const handleDeleteSim = async (sim: SimCard) => {
     setRechargeDialogOpen(true);
   };
 
+  const [forceDeleteNumber, setForceDeleteNumber] = useState('');
+
+  const handleForceDeleteByNumber = async () => {
+    if (!forceDeleteNumber) {
+      alert('Enter SIM number');
+      return;
+    }
+    if (confirm(`Permanently delete SIM ${forceDeleteNumber}? This allows re-adding the same number.`)) {
+      try {
+        await api.delete(`/sims/by-number/${forceDeleteNumber}/force`);
+        setForceDeleteNumber('');
+        fetchSims();
+        alert('SIM deleted successfully');
+      } catch (error) {
+        console.error('Failed to delete SIM:', error);
+        alert('Failed to delete SIM');
+      }
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold">SIM Card Management</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add SIM Card
-        </Button>
+        <div className="flex gap-2 items-center">
+          <Input 
+            placeholder="Enter SIM number to force delete" 
+            value={forceDeleteNumber}
+            onChange={(e) => setForceDeleteNumber(e.target.value)}
+            className="w-64"
+          />
+          <Button variant="destructive" size="sm" onClick={handleForceDeleteByNumber}>
+            Force Delete
+          </Button>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add SIM Card
+          </Button>
+        </div>
       </div>
 
       {sims.some((s) => s.isExpired || s.isExpiringSoon) && (
@@ -238,9 +258,6 @@ const handleDeleteSim = async (sim: SimCard) => {
                         Recharge
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteSim(sim)} className="text-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handlePermanentDelete(sim)} className="text-orange-600" title="Force delete - allows re-adding same number">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
