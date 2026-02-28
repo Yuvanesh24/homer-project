@@ -352,7 +352,7 @@ export function DevicesPage() {
               <SelectContent>
                 {availablePatients.map((patient) => (
                   <SelectItem key={patient.id} value={patient.id}>
-                    {patient.patientId} - {patient.groupType}
+                    {patient.patientId} {patient.name ? `(${patient.name})` : ''} - {patient.groupType}
                   </SelectItem>
                 ))}
               </SelectContent>
