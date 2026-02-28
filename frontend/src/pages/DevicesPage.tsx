@@ -86,9 +86,10 @@ export function DevicesPage() {
   const fetchBackupActigraphs = async () => {
     try {
       const response = await api.get('/devices/backup-actigraphs');
+      console.log('Backup actigraphs response:', response.data);
       setBackupActigraphs(response.data);
-    } catch (error) {
-      console.error('Failed to fetch backup actigraphs:', error);
+    } catch (error: any) {
+      console.error('Failed to fetch backup actigraphs:', error.response?.data || error.message);
     }
   };
 
@@ -127,16 +128,19 @@ export function DevicesPage() {
   };
 
   const handleCreateBackup = async () => {
+    console.log('Creating backup with data:', backupFormData);
     if (!backupFormData.name || !backupFormData.leftSerial || !backupFormData.rightSerial) {
       alert('Please fill in all fields');
       return;
     }
     try {
-      await api.post('/devices/backup-actigraphs', backupFormData);
+      const response = await api.post('/devices/backup-actigraphs', backupFormData);
+      console.log('Create backup success:', response.data);
       fetchBackupActigraphs();
       setBackupDialogOpen(false);
       setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
     } catch (error: any) {
+      console.error('Create backup error:', error.response?.data || error.message);
       alert(error.response?.data?.error || 'Failed to create backup actigraph');
     }
   };
