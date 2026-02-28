@@ -231,6 +231,33 @@ router.delete('/by-number/:simNumber/force', authenticate, authorize('admin'), a
   }
 });
 
+// Update SIM number - allows fixing duplicate numbers
+router.put('/:id/number', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { simNumber } = req.body;
+    
+    // First check if the new number already exists
+    const existing = await prisma.simCard.findFirst({
+      where: { simNumber, id: { not: id } }
+    });
+    
+    if (existing) {
+      return res.status(400).json({ error: 'SIM number already exists' });
+    }
+    
+    const sim = await prisma.simCard.update({
+      where: { id },
+      data: { simNumber },
+    });
+    
+    res.json(sim);
+  } catch (error) {
+    console.error('Update SIM number error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Force delete (hard delete) SIM - allows re-adding same number
 router.delete('/:id/force', authenticate, authorize('admin'), async (req, res) => {
   try {

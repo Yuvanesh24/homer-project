@@ -131,6 +131,29 @@ await api.delete(`/sims/${sim.id}`);
     }
   };
 
+  // Edit SIM number dialog
+  const [editSimDialogOpen, setEditSimDialogOpen] = useState(false);
+  const [editingSim, setEditingSim] = useState<SimCard | null>(null);
+  const [editSimNumber, setEditSimNumber] = useState('');
+
+  const openEditDialog = (sim: SimCard) => {
+    setEditingSim(sim);
+    setEditSimNumber(sim.simNumber);
+    setEditSimDialogOpen(true);
+  };
+
+  const handleUpdateSimNumber = async () => {
+    if (!editingSim || !editSimNumber) return;
+    try {
+      await api.put(`/sims/${editingSim.id}/number`, { simNumber: editSimNumber });
+      setEditSimDialogOpen(false);
+      fetchSims();
+      alert('SIM number updated!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to update SIM number');
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -254,6 +277,9 @@ await api.delete(`/sims/${sim.id}`);
                       )}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(sim)}>
+                        Edit
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => openRechargeDialog(sim)}>
                         Recharge
                       </Button>
@@ -353,6 +379,30 @@ await api.delete(`/sims/${sim.id}`);
           <DialogFooter>
             <Button variant="outline" onClick={() => setRechargeDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleRecharge}>Recharge</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit SIM Number Dialog */}
+      <Dialog open={editSimDialogOpen} onOpenChange={setEditSimDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit SIM Number</DialogTitle>
+            <DialogDescription>Change the phone number for this SIM card</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>New SIM Number</Label>
+              <Input
+                value={editSimNumber}
+                onChange={(e) => setEditSimNumber(e.target.value)}
+                placeholder="Enter new phone number"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditSimDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateSimNumber}>Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
