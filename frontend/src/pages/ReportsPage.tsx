@@ -224,7 +224,7 @@ export function ReportsPage() {
               <SelectContent>
                 {patients.map((patient) => (
                   <SelectItem key={patient.id} value={patient.id}>
-                    {patient.patientId} {patient.name ? `(${patient.name})` : ''}
+                    {patient.patientId} - {patient.name || '(No name)'}
                   </SelectItem>
                 ))}
               </SelectContent>
