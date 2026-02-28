@@ -67,8 +67,6 @@ export interface DeviceSet {
   modemSerial: string;
   actigraphLeftSerial: string;
   actigraphRightSerial: string;
-  actigraphLeft2Serial?: string;
-  actigraphRight2Serial?: string;
   status: 'available' | 'in_use' | 'under_maintenance';
   assignedPatientId?: string;
   patient?: {
@@ -80,6 +78,16 @@ export interface DeviceSet {
   expectedReturnDate?: string;
   returnDate?: string;
   simCards?: SimCard[];
+}
+
+export interface BackupActigraph {
+  id: string;
+  name: string;
+  leftSerial: string;
+  rightSerial: string;
+  isInUse: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SimCard {

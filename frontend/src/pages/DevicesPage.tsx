@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import api from '@/lib/api';
-import { DeviceSet, Patient } from '@/types';
-import { Tablet, Plus, RefreshCw, UserPlus, Trash2 } from 'lucide-react';
+import { DeviceSet, Patient, BackupActigraph } from '@/types';
+import { Tablet, Plus, RefreshCw, UserPlus, Trash2, ArrowLeftRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -34,8 +34,10 @@ import { Label } from '@/components/ui/label';
 export function DevicesPage() {
   const [devices, setDevices] = useState<DeviceSet[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [backupActigraphs, setBackupActigraphs] = useState<BackupActigraph[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [backupDialogOpen, setBackupDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<DeviceSet | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
@@ -47,13 +49,18 @@ export function DevicesPage() {
     modemSerial: '',
     actigraphLeftSerial: '',
     actigraphRightSerial: '',
-    actigraphLeft2Serial: '',
-    actigraphRight2Serial: '',
   });
+  const [backupFormData, setBackupFormData] = useState({
+    name: '',
+    leftSerial: '',
+    rightSerial: '',
+  });
+  const [editingBackup, setEditingBackup] = useState<BackupActigraph | null>(null);
 
   useEffect(() => {
     fetchDevices();
     fetchPatients();
+    fetchBackupActigraphs();
   }, []);
 
   const fetchDevices = async () => {
@@ -76,6 +83,15 @@ export function DevicesPage() {
     }
   };
 
+  const fetchBackupActigraphs = async () => {
+    try {
+      const response = await api.get('/devices/backup-actigraphs');
+      setBackupActigraphs(response.data);
+    } catch (error) {
+      console.error('Failed to fetch backup actigraphs:', error);
+    }
+  };
+
   const handleCreateDevice = async () => {
     if (!formData.marsDeviceId || !formData.plutoDeviceId) {
       alert('Please fill in required fields (MARS ID and PLUTO ID)');
@@ -89,8 +105,6 @@ export function DevicesPage() {
         modemSerial: formData.modemSerial || undefined,
         actigraphLeftSerial: formData.actigraphLeftSerial || undefined,
         actigraphRightSerial: formData.actigraphRightSerial || undefined,
-        actigraphLeft2Serial: formData.actigraphLeft2Serial || undefined,
-        actigraphRight2Serial: formData.actigraphRight2Serial || undefined,
         setNumber: formData.setNumber ? parseInt(formData.setNumber as string) : undefined,
       };
       await api.post('/devices', payload);
@@ -104,14 +118,63 @@ export function DevicesPage() {
         modemSerial: '',
         actigraphLeftSerial: '',
         actigraphRightSerial: '',
-        actigraphLeft2Serial: '',
-        actigraphRight2Serial: '',
       });
     } catch (error: any) {
       console.error('Device error:', error.response?.data);
       const errMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create device';
       alert(typeof errMsg === 'object' ? JSON.stringify(errMsg) : errMsg);
     }
+  };
+
+  const handleCreateBackup = async () => {
+    if (!backupFormData.name || !backupFormData.leftSerial || !backupFormData.rightSerial) {
+      alert('Please fill in all fields');
+      return;
+    }
+    try {
+      await api.post('/devices/backup-actigraphs', backupFormData);
+      fetchBackupActigraphs();
+      setBackupDialogOpen(false);
+      setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to create backup actigraph');
+    }
+  };
+
+  const handleUpdateBackup = async () => {
+    if (!editingBackup || !backupFormData.name || !backupFormData.leftSerial || !backupFormData.rightSerial) {
+      return;
+    }
+    try {
+      await api.put(`/devices/backup-actigraphs/${editingBackup.id}`, backupFormData);
+      fetchBackupActigraphs();
+      setBackupDialogOpen(false);
+      setEditingBackup(null);
+      setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to update backup actigraph');
+    }
+  };
+
+  const handleDeleteBackup = async (backup: BackupActigraph) => {
+    if (confirm(`Delete backup watch "${backup.name}"?`)) {
+      try {
+        await api.delete(`/devices/backup-actigraphs/${backup.id}`);
+        fetchBackupActigraphs();
+      } catch (error) {
+        console.error('Failed to delete backup:', error);
+      }
+    }
+  };
+
+  const openBackupEdit = (backup: BackupActigraph) => {
+    setEditingBackup(backup);
+    setBackupFormData({
+      name: backup.name,
+      leftSerial: backup.leftSerial,
+      rightSerial: backup.rightSerial,
+    });
+    setBackupDialogOpen(true);
   };
 
   const handleAssignDevice = async () => {
@@ -137,20 +200,22 @@ export function DevicesPage() {
   };
 
   const handleSwapActigraphs = async (device: DeviceSet) => {
-    if (!device.actigraphLeft2Serial || !device.actigraphRight2Serial) {
-      alert('No backup actigraphs available to swap');
+    const availableBackup = backupActigraphs.find(b => !b.isInUse);
+    if (!availableBackup) {
+      alert('No backup actigraphs available in the pool. Please add backup watches first.');
       return;
     }
-    if (!confirm(`Swap actigraphs?\n\nCurrent: ${device.actigraphLeftSerial}/${device.actigraphRightSerial}\nBackup: ${device.actigraphLeft2Serial}/${device.actigraphRight2Serial}`)) {
+    if (!confirm(`Swap actigraphs for this patient?\n\nCurrent: ${device.actigraphLeftSerial || '-'}/${device.actigraphRightSerial || '-'}\nWill receive: ${availableBackup.leftSerial}/${availableBackup.rightSerial}\n\nThe current watches will be returned to the backup pool.`)) {
       return;
     }
     try {
-      await api.post(`/devices/${device.id}/swap-actigraphs`);
+      const response = await api.post(`/devices/${device.id}/swap-actigraphs`);
       fetchDevices();
-      alert('Actigraphs swapped successfully!');
-    } catch (error) {
+      fetchBackupActigraphs();
+      alert(`Actigraphs swapped successfully!\nSwapped from: ${response.data.swappedFrom?.left || '-'}/${response.data.swappedFrom?.right || '-'}\nSwapped to: ${response.data.swappedTo?.left}/${response.data.swappedTo?.right}`);
+    } catch (error: any) {
       console.error('Failed to swap actigraphs:', error);
-      alert('Failed to swap actigraphs');
+      alert(error.response?.data?.error || 'Failed to swap actigraphs');
     }
   };
 
@@ -184,6 +249,8 @@ export function DevicesPage() {
   };
 
   const availablePatients = patients.filter(p => p.status === 'active');
+  const availableBackups = backupActigraphs.filter(b => !b.isInUse);
+  const inUseBackup = backupActigraphs.find(b => b.isInUse);
 
   return (
     <div className="p-6 space-y-6">
@@ -228,7 +295,7 @@ export function DevicesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Devices</CardTitle>
+          <CardTitle>Device Sets</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -239,6 +306,7 @@ export function DevicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Set #</TableHead>
                   <TableHead>MARS ID</TableHead>
                   <TableHead>PLUTO ID</TableHead>
                   <TableHead>Laptop</TableHead>
@@ -252,17 +320,13 @@ export function DevicesPage() {
               <TableBody>
                 {devices.map((device) => (
                   <TableRow key={device.id}>
-                    <TableCell className="font-medium">{device.marsDeviceId}</TableCell>
+                    <TableCell className="font-medium">{device.setNumber}</TableCell>
+                    <TableCell>{device.marsDeviceId}</TableCell>
                     <TableCell>{device.plutoDeviceId}</TableCell>
                     <TableCell>{device.laptopNumber || '-'}</TableCell>
                     <TableCell>{device.modemSerial || '-'}</TableCell>
                     <TableCell>
                       {device.actigraphLeftSerial || '-'} / {device.actigraphRightSerial || '-'}
-                      {(device.actigraphLeft2Serial || device.actigraphRight2Serial) && (
-                        <span className="text-xs text-blue-600 block">
-                          Backup: {device.actigraphLeft2Serial || '-'} / {device.actigraphRight2Serial || '-'}
-                        </span>
-                      )}
                     </TableCell>
                     <TableCell>{getStatusBadge(device.status)}</TableCell>
                     <TableCell>
@@ -276,12 +340,80 @@ export function DevicesPage() {
                         </Button>
                       )}
                       {device.status === 'in_use' && (
-                        <Button variant="outline" size="sm" onClick={() => handleReturnDevice(device)}>
-                          <RefreshCw className="mr-1 h-3 w-3" />
-                          Return
-                        </Button>
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleSwapActigraphs(device)} disabled={availableBackups.length === 0} title={availableBackups.length === 0 ? "No backup watches available" : "Swap actigraphs (Day 15)"}>
+                            <ArrowLeftRight className="mr-1 h-3 w-3" />
+                            Swap
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleReturnDevice(device)}>
+                            <RefreshCw className="mr-1 h-3 w-3" />
+                            Return
+                          </Button>
+                        </>
                       )}
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteDevice(device)} className="text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Backup Watches Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Backup Watches (Shared Pool)</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => {
+            setEditingBackup(null);
+            setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
+            setBackupDialogOpen(true);
+          }}>
+            <Plus className="mr-1 h-4 w-4" />
+            Add Backup Pair
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            These backup actigraph watches can be swapped with patient's current watches on day 15.
+            {inUseBackup && <span className="text-orange-600 ml-2">Currently in use: {inUseBackup.name}</span>}
+          </p>
+          {backupActigraphs.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No backup watches added yet. Click "Add Backup Pair" to add watches for 15-day swaps.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Left Serial</TableHead>
+                  <TableHead>Right Serial</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {backupActigraphs.map((backup) => (
+                  <TableRow key={backup.id}>
+                    <TableCell className="font-medium">{backup.name}</TableCell>
+                    <TableCell>{backup.leftSerial}</TableCell>
+                    <TableCell>{backup.rightSerial}</TableCell>
+                    <TableCell>
+                      {backup.isInUse ? (
+                        <Badge variant="warning">In Use</Badge>
+                      ) : (
+                        <Badge variant="success">Available</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => openBackupEdit(backup)}>
+                        Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteBackup(backup)} className="text-red-600">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -298,7 +430,7 @@ export function DevicesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Device</DialogTitle>
-            <DialogDescription>Enter the device details.</DialogDescription>
+            <DialogDescription>Enter the device set details.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
@@ -348,6 +480,7 @@ export function DevicesPage() {
               <Input
                 value={formData.actigraphLeftSerial}
                 onChange={(e) => setFormData({ ...formData, actigraphLeftSerial: e.target.value })}
+                placeholder="e.g., A0"
               />
             </div>
             <div className="space-y-2">
@@ -355,28 +488,58 @@ export function DevicesPage() {
               <Input
                 value={formData.actigraphRightSerial}
                 onChange={(e) => setFormData({ ...formData, actigraphRightSerial: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Backup Actigraph Left (for 15th day swap)</Label>
-              <Input
-                value={formData.actigraphLeft2Serial}
-                onChange={(e) => setFormData({ ...formData, actigraphLeft2Serial: e.target.value })}
-                placeholder="Leave empty if not available"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Backup Actigraph Right (for 15th day swap)</Label>
-              <Input
-                value={formData.actigraphRight2Serial}
-                onChange={(e) => setFormData({ ...formData, actigraphRight2Serial: e.target.value })}
-                placeholder="Leave empty if not available"
+                placeholder="e.g., A1"
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateDevice}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Backup Actigraph Dialog */}
+      <Dialog open={backupDialogOpen} onOpenChange={setBackupDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingBackup ? 'Edit Backup Pair' : 'Add Backup Pair'}</DialogTitle>
+            <DialogDescription>Add a pair of backup actigraph watches for 15-day swaps.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={backupFormData.name}
+                onChange={(e) => setBackupFormData({ ...backupFormData, name: e.target.value })}
+                placeholder="e.g., Backup Pair 1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Left Serial</Label>
+              <Input
+                value={backupFormData.leftSerial}
+                onChange={(e) => setBackupFormData({ ...backupFormData, leftSerial: e.target.value })}
+                placeholder="e.g., B0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Right Serial</Label>
+              <Input
+                value={backupFormData.rightSerial}
+                onChange={(e) => setBackupFormData({ ...backupFormData, rightSerial: e.target.value })}
+                placeholder="e.g., B1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setBackupDialogOpen(false);
+              setEditingBackup(null);
+            }}>Cancel</Button>
+            <Button onClick={editingBackup ? handleUpdateBackup : handleCreateBackup}>
+              {editingBackup ? 'Update' : 'Add'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

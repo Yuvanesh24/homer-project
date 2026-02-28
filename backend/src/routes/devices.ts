@@ -223,7 +223,7 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-// Swap actigraph watches (for 15th day swap)
+// Swap actigraph watches (for 15th day swap) - uses shared pool
 router.post('/:id/swap-actigraphs', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -233,24 +233,125 @@ router.post('/:id/swap-actigraphs', authenticate, authorize('admin', 'therapist'
       return res.status(404).json({ error: 'Device set not found' });
     }
 
-    if (!device.actigraphLeft2Serial || !device.actigraphRight2Serial) {
-      return res.status(400).json({ error: 'No backup actigraphs available to swap' });
+    // Get available backup actigraphs from the shared pool
+    const availableBackups = await prisma.backupActigraph.findMany({
+      where: { isInUse: false },
+      orderBy: { name: 'asc' }
+    });
+
+    if (availableBackups.length === 0) {
+      return res.status(400).json({ error: 'No backup actigraphs available in the pool. Please add backup watches first.' });
     }
 
-    // Swap the watches
+    // Use the first available backup pair
+    const backup = availableBackups[0];
+
+    // Swap: current actigraphs become the new backup
     const updatedDevice = await prisma.deviceSet.update({
       where: { id },
       data: {
-        actigraphLeftSerial: device.actigraphLeft2Serial,
-        actigraphRightSerial: device.actigraphRight2Serial,
-        actigraphLeft2Serial: device.actigraphLeftSerial,
-        actigraphRight2Serial: device.actigraphRightSerial,
+        actigraphLeftSerial: backup.leftSerial,
+        actigraphRightSerial: backup.rightSerial,
       },
     });
 
-    res.json(updatedDevice);
+    // Mark this backup as in use
+    await prisma.backupActigraph.update({
+      where: { id: backup.id },
+      data: { isInUse: true }
+    });
+
+    // Mark any previously in-use backup as available (only one can be in use at a time)
+    await prisma.backupActigraph.updateMany({
+      where: { 
+        id: { not: backup.id },
+        isInUse: true 
+      },
+      data: { isInUse: false }
+    });
+
+    res.json({ 
+      device: updatedDevice, 
+      swappedFrom: { left: device.actigraphLeftSerial, right: device.actigraphRightSerial },
+      swappedTo: { left: backup.leftSerial, right: backup.rightSerial }
+    });
   } catch (error) {
     console.error('Swap actigraphs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Backup Actigraphs CRUD
+router.get('/backup-actigraphs', authenticate, async (req, res) => {
+  try {
+    const backups = await prisma.backupActigraph.findMany({
+      orderBy: { name: 'asc' }
+    });
+    res.json(backups);
+  } catch (error) {
+    console.error('Get backup actigraphs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/backup-actigraphs', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { name, leftSerial, rightSerial } = req.body;
+
+    if (!name || !leftSerial || !rightSerial) {
+      return res.status(400).json({ error: 'Name, left serial, and right serial are required' });
+    }
+
+    const existing = await prisma.backupActigraph.findUnique({ where: { name } });
+    if (existing) {
+      return res.status(400).json({ error: 'A backup actigraph with this name already exists' });
+    }
+
+    const backup = await prisma.backupActigraph.create({
+      data: { name, leftSerial, rightSerial }
+    });
+
+    res.status(201).json(backup);
+  } catch (error) {
+    console.error('Create backup actigraph error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.put('/backup-actigraphs/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, leftSerial, rightSerial, isInUse } = req.body;
+
+    const backup = await prisma.backupActigraph.findUnique({ where: { id } });
+    if (!backup) {
+      return res.status(404).json({ error: 'Backup actigraph not found' });
+    }
+
+    const updated = await prisma.backupActigraph.update({
+      where: { id },
+      data: { 
+        ...(name && { name }),
+        ...(leftSerial && { leftSerial }),
+        ...(rightSerial && { rightSerial }),
+        ...(typeof isInUse === 'boolean' && { isInUse })
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Update backup actigraph error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/backup-actigraphs/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.backupActigraph.delete({ where: { id } });
+    res.json({ message: 'Backup actigraph deleted successfully' });
+  } catch (error) {
+    console.error('Delete backup actigraph error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
