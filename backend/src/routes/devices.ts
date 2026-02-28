@@ -294,7 +294,7 @@ router.get('/backup-actigraphs', authenticate, async (req, res) => {
   }
 });
 
-router.post('/backup-actigraphs', authenticate, authorize('admin'), async (req, res) => {
+router.post('/backup-actigraphs', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { name, leftSerial, rightSerial } = req.body;
 
@@ -318,7 +318,7 @@ router.post('/backup-actigraphs', authenticate, authorize('admin'), async (req, 
   }
 });
 
-router.put('/backup-actigraphs/:id', authenticate, authorize('admin'), async (req, res) => {
+router.put('/backup-actigraphs/:id', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, leftSerial, rightSerial, isInUse } = req.body;
@@ -345,7 +345,7 @@ router.put('/backup-actigraphs/:id', authenticate, authorize('admin'), async (re
   }
 });
 
-router.delete('/backup-actigraphs/:id', authenticate, authorize('admin'), async (req, res) => {
+router.delete('/backup-actigraphs/:id', authenticate, authorize('admin', 'therapist'), async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.backupActigraph.delete({ where: { id } });
