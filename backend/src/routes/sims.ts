@@ -217,7 +217,7 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-// Force delete (hard delete) SIM - allows re-adding same number
+// Force delete (hard delete) SIM by phone number - MUST come before /:id routes
 router.delete('/by-number/:simNumber/force', authenticate, authorize('admin'), async (req, res) => {
   try {
     const { simNumber } = req.params;
