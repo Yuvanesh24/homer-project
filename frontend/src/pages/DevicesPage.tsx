@@ -47,6 +47,8 @@ export function DevicesPage() {
     modemSerial: '',
     actigraphLeftSerial: '',
     actigraphRightSerial: '',
+    actigraphLeft2Serial: '',
+    actigraphRight2Serial: '',
   });
 
   useEffect(() => {
@@ -87,6 +89,8 @@ export function DevicesPage() {
         modemSerial: formData.modemSerial || undefined,
         actigraphLeftSerial: formData.actigraphLeftSerial || undefined,
         actigraphRightSerial: formData.actigraphRightSerial || undefined,
+        actigraphLeft2Serial: formData.actigraphLeft2Serial || undefined,
+        actigraphRight2Serial: formData.actigraphRight2Serial || undefined,
         setNumber: formData.setNumber ? parseInt(formData.setNumber as string) : undefined,
       };
       await api.post('/devices', payload);
@@ -100,6 +104,8 @@ export function DevicesPage() {
         modemSerial: '',
         actigraphLeftSerial: '',
         actigraphRightSerial: '',
+        actigraphLeft2Serial: '',
+        actigraphRight2Serial: '',
       });
     } catch (error: any) {
       console.error('Device error:', error.response?.data);
@@ -234,6 +240,11 @@ export function DevicesPage() {
                     <TableCell>{device.modemSerial || '-'}</TableCell>
                     <TableCell>
                       {device.actigraphLeftSerial || '-'} / {device.actigraphRightSerial || '-'}
+                      {(device.actigraphLeft2Serial || device.actigraphRight2Serial) && (
+                        <span className="text-xs text-blue-600 block">
+                          Backup: {device.actigraphLeft2Serial || '-'} / {device.actigraphRight2Serial || '-'}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>{getStatusBadge(device.status)}</TableCell>
                     <TableCell>
@@ -326,6 +337,22 @@ export function DevicesPage() {
               <Input
                 value={formData.actigraphRightSerial}
                 onChange={(e) => setFormData({ ...formData, actigraphRightSerial: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Backup Actigraph Left (for 15th day swap)</Label>
+              <Input
+                value={formData.actigraphLeft2Serial}
+                onChange={(e) => setFormData({ ...formData, actigraphLeft2Serial: e.target.value })}
+                placeholder="Leave empty if not available"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Backup Actigraph Right (for 15th day swap)</Label>
+              <Input
+                value={formData.actigraphRight2Serial}
+                onChange={(e) => setFormData({ ...formData, actigraphRight2Serial: e.target.value })}
+                placeholder="Leave empty if not available"
               />
             </div>
           </div>

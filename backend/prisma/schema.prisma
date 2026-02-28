@@ -169,6 +169,8 @@ model DeviceSet {
   modemSerial          String        @map("modem_serial")
   actigraphLeftSerial  String        @map("actigraph_left_serial")
   actigraphRightSerial String        @map("actigraph_right_serial")
+  actigraphLeft2Serial  String?      @map("actigraph_left_2_serial")
+  actigraphRight2Serial String?     @map("actigraph_right_2_serial")
   status               DeviceStatus  @default(available)
   assignedPatientId    String?       @unique @map("assigned_patient_id")
   assignmentDate       DateTime?     @map("assignment_date")
