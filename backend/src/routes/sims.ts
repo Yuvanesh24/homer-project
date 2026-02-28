@@ -217,4 +217,18 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// Force delete (hard delete) SIM - allows re-adding same number
+router.delete('/:id/force', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.simCard.delete({
+      where: { id },
+    });
+    res.json({ message: 'SIM card permanently deleted' });
+  } catch (error) {
+    console.error('Force delete SIM error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

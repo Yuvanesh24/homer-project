@@ -240,7 +240,7 @@ export function AdverseEventsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {patients.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.patientId}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>{p.patientId} {p.name ? `(${p.name})` : ''}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
