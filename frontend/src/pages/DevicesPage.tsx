@@ -366,7 +366,7 @@ export function DevicesPage() {
       {/* Backup Watches Section */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Backup Watches (Shared Pool)</CardTitle>
+          <CardTitle>Backup Watches (For 15-Day Swap)</CardTitle>
           <Button variant="outline" size="sm" onClick={() => {
             setEditingBackup(null);
             setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
