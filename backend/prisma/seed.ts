@@ -117,6 +117,7 @@ async function main() {
   const simCards = [
     {
       simNumber: '8197646397',
+      modemNumber: 'MODEM-001',
       provider: 'airtel',
       linkedDeviceSetId: (await prisma.deviceSet.findUnique({ where: { setNumber: 1 } }))?.id,
       rechargeDate,
@@ -125,6 +126,7 @@ async function main() {
     },
     {
       simNumber: '7204686397',
+      modemNumber: 'MODEM-003',
       provider: 'airtel',
       linkedDeviceSetId: (await prisma.deviceSet.findUnique({ where: { setNumber: 3 } }))?.id,
       rechargeDate,
@@ -133,6 +135,7 @@ async function main() {
     },
     {
       simNumber: '8296391397',
+      modemNumber: 'MODEM-005',
       provider: 'airtel',
       linkedDeviceSetId: (await prisma.deviceSet.findUnique({ where: { setNumber: 5 } }))?.id,
       rechargeDate,
