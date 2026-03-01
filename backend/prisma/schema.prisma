@@ -137,6 +137,7 @@ model Patient {
   issueLogs                IssueLog[]
   reminders                Reminder[]
   exercises                PatientExercise[]
+  actigraphWatches         ActigraphWatch[]
 
   @@map("patients")
 }
@@ -186,6 +187,7 @@ model ActigraphWatch {
   leftSerial     String    @map("left_serial")
   rightSerial    String    @map("right_serial")
   assignedPatientId String? @unique @map("assigned_patient_id")
+  patient        Patient?  @relation(fields: [assignedPatientId], references: [id])
   assignmentDate DateTime? @map("assignment_date")
   isBackup       Boolean   @default(false) @map("is_backup")
   createdAt      DateTime  @default(now()) @map("created_at")
