@@ -45,8 +45,6 @@ async function main() {
       plutoDeviceId: 'PLUTO-001',
       laptopNumber: 'LAP-001',
       modemSerial: 'MODEM-001',
-      actigraphLeftSerial: 'ACT-L-001',
-      actigraphRightSerial: 'ACT-R-001',
       status: 'available',
     },
     {
@@ -55,8 +53,6 @@ async function main() {
       plutoDeviceId: 'PLUTO-002',
       laptopNumber: 'LAP-002',
       modemSerial: 'MODEM-002',
-      actigraphLeftSerial: 'ACT-L-002',
-      actigraphRightSerial: 'ACT-R-002',
       status: 'available',
     },
     {
@@ -65,8 +61,6 @@ async function main() {
       plutoDeviceId: 'PLUTO-003',
       laptopNumber: 'LAP-003',
       modemSerial: 'MODEM-003',
-      actigraphLeftSerial: 'ACT-L-003',
-      actigraphRightSerial: 'ACT-R-003',
       status: 'available',
     },
     {
@@ -75,8 +69,6 @@ async function main() {
       plutoDeviceId: 'PLUTO-004',
       laptopNumber: 'LAP-004',
       modemSerial: 'MODEM-004',
-      actigraphLeftSerial: 'ACT-L-004',
-      actigraphRightSerial: 'ACT-R-004',
       status: 'available',
     },
     {
@@ -85,8 +77,6 @@ async function main() {
       plutoDeviceId: 'PLUTO-005',
       laptopNumber: 'LAP-005',
       modemSerial: 'MODEM-005',
-      actigraphLeftSerial: 'ACT-L-005',
-      actigraphRightSerial: 'ACT-R-005',
       status: 'available',
     },
   ];
@@ -100,6 +90,26 @@ async function main() {
   }
 
   console.log('Created 5 device sets');
+
+  const watches = [
+    { name: 'Pair 1', leftSerial: 'A0', rightSerial: 'A1', isBackup: false },
+    { name: 'Pair 2', leftSerial: 'A2', rightSerial: 'A3', isBackup: false },
+    { name: 'Pair 3', leftSerial: 'A4', rightSerial: 'A5', isBackup: false },
+    { name: 'Pair 4', leftSerial: 'A6', rightSerial: 'A7', isBackup: false },
+    { name: 'Pair 5', leftSerial: 'A8', rightSerial: 'A9', isBackup: false },
+    { name: 'Backup 1', leftSerial: 'B0', rightSerial: 'B1', isBackup: true },
+    { name: 'Backup 2', leftSerial: 'B2', rightSerial: 'B3', isBackup: true },
+  ];
+
+  for (const watch of watches) {
+    await prisma.actigraphWatch.upsert({
+      where: { name: watch.name },
+      update: {},
+      create: watch,
+    });
+  }
+
+  console.log('Created 7 watch pairs (5 normal + 2 backup)');
 
   const rechargeDate = new Date();
   const expiryDate = addDays(rechargeDate, 180);

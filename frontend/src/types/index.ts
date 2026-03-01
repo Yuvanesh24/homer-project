@@ -65,8 +65,6 @@ export interface DeviceSet {
   plutoDeviceId: string;
   laptopNumber: string;
   modemSerial: string;
-  actigraphLeftSerial: string;
-  actigraphRightSerial: string;
   status: 'available' | 'in_use' | 'under_maintenance';
   assignedPatientId?: string;
   patient?: {
@@ -80,12 +78,14 @@ export interface DeviceSet {
   simCards?: SimCard[];
 }
 
-export interface BackupActigraph {
+export interface ActigraphWatch {
   id: string;
   name: string;
   leftSerial: string;
   rightSerial: string;
-  isInUse: boolean;
+  assignedPatientId?: string;
+  assignmentDate?: string;
+  isBackup: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

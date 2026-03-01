@@ -40,6 +40,7 @@ import dashboardRoutes from './routes/dashboard';
 import exportRoutes from './routes/export';
 import syncRoutes from './routes/sync';
 import exerciseRoutes from './routes/exercises';
+import watchRoutes from './routes/watches';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
@@ -54,6 +55,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/exercises', exerciseRoutes);
+app.use('/api/watches', watchRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
