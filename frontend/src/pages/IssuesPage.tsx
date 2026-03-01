@@ -262,7 +262,17 @@ export function IssuesPage() {
             </div>
             <div className="space-y-2">
               <Label>Contact Date & Time</Label>
-              <Input type="datetime-local" value={formData.contactDate.slice(0, 16)} onChange={(e) => setFormData({ ...formData, contactDate: new Date(e.target.value).toISOString() })} />
+              <Input 
+                type="datetime-local" 
+                value={formData.contactDate ? formData.contactDate.slice(0, 16) : ''} 
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const date = new Date(e.target.value);
+                    const localISO = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+                    setFormData({ ...formData, contactDate: localISO });
+                  }
+                }} 
+              />
             </div>
             <div className="space-y-2">
               <Label>Contact Type</Label>
