@@ -87,7 +87,7 @@ export function DevicesPage() {
     try {
       const response = await api.get('/devices/backup-actigraphs');
       console.log('Backup actigraphs response:', response.data);
-      setBackupActigraphs(response.data);
+      setBackupActigraphs(response.data || []);
     } catch (error: any) {
       console.error('Failed to fetch backup actigraphs:', error.response?.data || error.message);
     }
@@ -136,9 +136,10 @@ export function DevicesPage() {
     try {
       const response = await api.post('/devices/backup-actigraphs', backupFormData);
       console.log('Create backup success:', response.data);
-      fetchBackupActigraphs();
+      await fetchBackupActigraphs();
       setBackupDialogOpen(false);
       setBackupFormData({ name: '', leftSerial: '', rightSerial: '' });
+      alert('Backup pair added successfully!');
     } catch (error: any) {
       console.error('Create backup error:', error.response?.data || error.message);
       alert(error.response?.data?.error || 'Failed to create backup actigraph');
