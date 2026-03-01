@@ -86,6 +86,11 @@ export interface ActigraphWatch {
   assignedPatientId?: string;
   assignmentDate?: string;
   isBackup: boolean;
+  patient?: {
+    id: string;
+    patientId: string;
+    name?: string;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

@@ -430,8 +430,8 @@ export function DevicesPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {watch.assignedPatientId ? (
-                        <span className="text-blue-600">Patient ID: {watch.assignedPatientId}</span>
+                      {watch.patient ? (
+                        <span className="text-blue-600">{watch.patient.patientId} - {watch.patient.name || '(No name)'}</span>
                       ) : '-'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">

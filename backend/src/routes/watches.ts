@@ -7,7 +7,12 @@ const router = Router();
 router.get('/', authenticate, async (req, res) => {
   try {
     const watches = await prisma.actigraphWatch.findMany({
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
+      include: {
+        patient: {
+          select: { id: true, patientId: true, name: true }
+        }
+      }
     });
     res.json(watches);
   } catch (error) {
